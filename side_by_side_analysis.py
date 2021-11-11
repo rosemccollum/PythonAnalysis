@@ -1,5 +1,4 @@
 # Goal of script is to turn initial pandas DataFrames for pre and post stimulation coherence into a 3x1 plot with pre/post/delta conherence
-# To simplify, I imported these as .csv files, but in the actual code we will be using load/save mat method of scipy
 
 import scipy.io as scio
 import seaborn as sns
@@ -54,9 +53,13 @@ temp_df.to_csv(filename, index = False)
 df = pd.read_csv('precohdata.csv',index_col=False)
 df_2 = pd.read_csv('postcohdata.csv',index_col=False)
 
+# Subtract post - pre coh
+sub_df = df_2.set_index('freq').subtract(df.set_index('freq'), fill_value=0)
+
 # Transpose DataFrame
 df = df.T
 df_2 = df_2.T
+sub_df = sub_df.T
 
 # Remove index and save to new DataFrame
 df.columns = df.iloc[0]
@@ -67,10 +70,11 @@ df_2_new = df_2[1:]
 
 # Add deliniator to end of Data Frame
 df_new['period'] = 'pre'
-df_2_new['period'] = 'post' # bele
+df_2_new['period'] = 'post' 
+sub_df['period'] = 'delta'
 
-# Pandas Concatination
-df_3 = pd.concat([df_new,df_2_new])
+# # Pandas Concatination
+df_3 = pd.concat([df_new, df_2_new, sub_df])
 
 pd.set_option("display.max_rows", None)
 
