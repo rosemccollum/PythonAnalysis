@@ -78,11 +78,6 @@ df_3 = pd.concat([df_new, df_2_new, sub_df])
 
 pd.set_option("display.max_rows", None)
 
-#Rename the channels into something easier to digest for now
-k = 0
-for k in range(len(channels)):
-    df_3 = df_3.rename(columns = {channels[k]: 'CH' + str(k+1)})
-
 # Pull frequency data from the index and create new 'freq' column
 df_3['freq'] = df_3.index
 
@@ -90,25 +85,26 @@ df_3['freq'] = df_3.index
 df_3.reset_index(drop=True, inplace=True)
 # Remove index name from df_3
 # Drop first column of dataframe
-df_3 = df_3[['freq','CH1','CH2','CH3','CH4','CH5','CH6','CH7','CH8','period']]
-# print(df_3.head())
+df_3 = df_3[['freq', channels[0], channels[1], channels[2], channels[3], channels[4], channels[5], channels[6], channels[7],'period']]
 
 ch_num = 8 # Number of channels - 8 by default. This defines number of while loops
 loop_num = ch_num +1 # This is to make sure we can put in the channel number literally and still get the loop to run the correct number of times
 m = 1
+l = 0
 
 # Build df_final before while loop
 column_list = ['freq','coh','period','channel']
 global df_final
-df_final = pd.DataFrame(columns=column_list)   # print(channel)
+df_final = pd.DataFrame(columns=column_list)  
 
 # while loop to create final DataFrame (df_final)
 while m < loop_num:
-    channel = 'CH'+str(m)
+    channel = channels[l]  
     df_loop = df_3[['freq',channel,'period']]
-    df_loop['channel']=channel
+    df_loop['channel'] = channel
     df_loop.rename({channel: 'coh'},axis=1, inplace=True)
-    m +=1
+    m += 1
+    l += 1
     df_final = df_final.append(df_loop)
     del df_loop
 
