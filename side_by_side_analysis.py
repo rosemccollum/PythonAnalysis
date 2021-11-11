@@ -8,9 +8,51 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Load in matlab files
+pre_mat = scio.loadmat(r'E:\dev2111\day2\RAW_PRE_dev2111_day2_coh')
+post_mat = scio.loadmat(r'E:\dev2111\day2\RAW_POST_dev2111_day2_coh')
+pre_coh = pre_mat['coh_spect'] # Goes into power data
+post_coh = post_mat['coh_spect']
+freq = pre_mat['freq'][0]  # Gives list of freq values
+channels_mat = pre_mat['cmb_labels']
+
+# Writes list of channels to use for plotting
+h = 0 
+channels = []
+for g in range(len(channels_mat)):
+    channels.append(channels_mat[g][0][0])
+
+# Writes CSV value w/ pre pwr, no channel lables  
+filename = 'precohdata.csv'
+i = 0
+with open(filename, 'w') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerow(freq)
+    for i in range(len(pre_coh)):
+        csvwriter.writerow(pre_coh[i])
+
+# Adding chan labels 
+temp_df = pd.read_csv(filename)
+temp_df.insert(0, column='freq', value = channels)
+temp_df.to_csv(filename, index = False)
+
+# Writes CSV w/ post pwr, no channel lables 
+filename = 'postcohdata.csv'
+j = 0
+with open(filename, 'w') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerow(freq) 
+    for j in range(len(post_coh)):
+        csvwriter.writerow(post_coh[j])
+
+# Adding chan label
+temp_df = pd.read_csv(filename)
+temp_df.insert(0, column='freq', value = channels)
+temp_df.to_csv(filename, index = False)
+
 # Load new csvs into Pandas DataFrame
-df = pd.read_csv('RAW_PRE_dev2107_day1_TFR_coh.csv',index_col=False)
-df_2 = pd.read_csv('RAW_POST_dev2107_day1_TFR_coh.csv',index_col=False)
+df = pd.read_csv('precohdata.csv',index_col=False)
+df_2 = pd.read_csv('postcohdata.csv',index_col=False)
 
 # Transpose DataFrame
 df = df.T
@@ -25,7 +67,7 @@ df_2_new = df_2[1:]
 
 # Add deliniator to end of Data Frame
 df_new['period'] = 'pre'
-df_2_new['period'] = 'post' bele
+df_2_new['period'] = 'post' # bele
 
 # Pandas Concatination
 df_3 = pd.concat([df_new,df_2_new])
@@ -33,7 +75,9 @@ df_3 = pd.concat([df_new,df_2_new])
 pd.set_option("display.max_rows", None)
 
 #Rename the channels into something easier to digest for now
-df_3.rename({'IL1-IL2 - BLA5-BLA6': 'CH1', 'IL1-IL2 - BLA7-BLA8': 'CH2','IL3-IL4 - BLA5-BLA6':'CH3','IL3-IL4 - BLA7-BLA8':'CH4','IL5-IL6 - BLA5-BLA6':'CH5','IL5-IL6 - BLA7-BLA8':'CH6','IL7-IL8 - BLA5-BLA6':'CH7','IL7-IL8 - BLA7-BLA8':'CH8'}, axis=1, inplace=True)
+k = 0
+for k in range(len(channels)):
+    df_3 = df_3.rename(columns = {channels[k]: 'CH' + str(k+1)})
 
 # Pull frequency data from the index and create new 'freq' column
 df_3['freq'] = df_3.index
