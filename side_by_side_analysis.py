@@ -6,10 +6,13 @@ import csv
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import simple_GUI as sg
 
-# Load in matlab files
-pre_mat = scio.loadmat(r'E:\dev2111\day2\RAW_PRE_dev2111_day2_coh')
-post_mat = scio.loadmat(r'E:\dev2111\day2\RAW_POST_dev2111_day2_coh')
+print('TNEL Plotter')
+# Load matlab files
+pre_mat = scio.loadmat(r"/media/jon/EPHYSDATA_ext/"+sg.ani_num+"/"+sg.rec_day+"/RAW_PRE_"+sg.ani_num+"_"+sg.rec_day+"_coh")
+post_mat = scio.loadmat(r"/media/jon/EPHYSDATA_ext/"+sg.ani_num+"/"+sg.rec_day+"/RAW_POST_"+sg.ani_num+"_"+sg.rec_day+"_coh")
+
 pre_coh = pre_mat['coh_spect'] # Goes into power data
 post_coh = post_mat['coh_spect']
 freq = pre_mat['freq'][0]  # Gives list of freq values
