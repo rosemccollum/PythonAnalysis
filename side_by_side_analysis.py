@@ -7,11 +7,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import simple_GUI as sg
+import os
 
 print('TNEL Plotter')
 # Load matlab files
-pre_mat = scio.loadmat(r"/media/jon/EPHYSDATA_ext/"+sg.ani_num+"/"+sg.rec_day+"/RAW_PRE_"+sg.ani_num+"_"+sg.rec_day+"_coh")
-post_mat = scio.loadmat(r"/media/jon/EPHYSDATA_ext/"+sg.ani_num+"/"+sg.rec_day+"/RAW_POST_"+sg.ani_num+"_"+sg.rec_day+"_coh")
+pre_name = os.path.join(sg.path_name, 'RAW_PRE_' + sg.ani_num + "_" + sg.rec_day + "_coh")
+post_name = os.path.join(sg.path_name, 'RAW_POST_' + sg.ani_num + "_" + sg.rec_day + "_coh")
+pre_mat = scio.loadmat(pre_name)
+post_mat = scio.loadmat(post_name)
 
 pre_coh = pre_mat['coh_spect'] # Goes into power data
 post_coh = post_mat['coh_spect']
@@ -24,7 +27,7 @@ channels = []
 for g in range(len(channels_mat)):
     channels.append(channels_mat[g][0][0])
 
-# Writes CSV value w/ pre pwr, no channel lables  
+# Writes CSV value w/ pre coh, no channel lables  
 filename = 'precohdata.csv'
 i = 0
 with open(filename, 'w') as csvfile:
@@ -38,7 +41,7 @@ temp_df = pd.read_csv(filename)
 temp_df.insert(0, column='freq', value = channels)
 temp_df.to_csv(filename, index = False)
 
-# Writes CSV w/ post pwr, no channel lables 
+# Writes CSV w/ post coh, no channel lables 
 filename = 'postcohdata.csv'
 j = 0
 with open(filename, 'w') as csvfile:
@@ -75,8 +78,6 @@ df_2_new = df_2[1:]
 df_new['period'] = 'pre'
 df_2_new['period'] = 'post' 
 sub_df['period'] = 'delta'
-
-## Pretty sure I need to repeat all of the following steps for each dataframe so UwU this will be fun. 
  
 # CORRECTING df_new 
 # Pull frequency data from the index and create new 'freq' column
