@@ -7,7 +7,7 @@ class graph_gui:
         # Setup GUI Window
         self.root = root
         root.title('TNE Lab Coherence vs. Frequency Grapher') # Set Window Name
-        root.geometry('450x200') # Set Width vs. Height
+        root.geometry('475x200') # Set Width vs. Height
         root.resizable(width=False,height=False) # Fix W/H
 
         # Add Labels
@@ -22,9 +22,9 @@ class graph_gui:
         self.r_day = StringVar()
         self.a_num = StringVar()
         self.path = StringVar()
-        self.entry_1 = Entry(root,width=20,textvariable=self.r_day).place(x=220,y=20)
-        self.entry_2 = Entry(root,width=20,textvariable=self.a_num).place(x=220,y=60)
-        self.entry_3 = Entry(root, width = 20, textvariable = self.path).place(x = 220, y = 100)
+        self.entry_1 = Entry(root,width=20,textvariable=self.r_day).place(x=250,y=20)
+        self.entry_2 = Entry(root,width=20,textvariable=self.a_num).place(x=250,y=60)
+        self.entry_3 = Entry(root, width = 20, textvariable = self.path).place(x=250,y=100)
 
     def save_values(self):
         global rec_day
