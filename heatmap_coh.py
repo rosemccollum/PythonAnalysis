@@ -4,9 +4,12 @@ import csv
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import simple_GUI as sg
+import os
 
 # Load coh matlab
-coh_mat = scio.loadmat(r'C:\Users\angel\Documents\TNE Lab\Programming\RAW_PRE_dev2107_day2_coh')
+coh_name = os.path.join(sg.path_name, 'RAW_PRE_' + sg.ani_num + "_" + sg.rec_day + "_coh")
+coh_mat = scio.loadmat(coh_name)
 
 # Pull coh, freq, and chan data
 coh = coh_mat['coh_spect']
