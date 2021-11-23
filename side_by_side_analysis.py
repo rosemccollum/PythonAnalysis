@@ -195,31 +195,37 @@ while m < loop_num:
 df_final_sub = df_final_sub.reset_index()
 df_final_sub = df_final_sub[['freq','coh','channel','period']]
 
-# Prepare and print pre Seaborn plot
-plot = sns.relplot(data = df_final_pre, x='freq',y='coh',kind='line',col='period',hue='channel')
-plot.set_xlabels('freq')
-plot.set_ylabels('coh')
-plot.axes[0][0].set_xticks(range(10,61,10))
-plot.axes[0][0].set_xticklabels([5, 10, 15, 20, 25, 30])
-plt.axvline(7, 0, color = 'k')
-plt.axvline(15, 0, color = 'k')
+# Plot graphs in subplot
+fig = plt.figure(figsize = (9,8), constrained_layout = True)
+ax1 = fig.add_subplot(2, 2, 1)
+ax2 = fig.add_subplot(2, 2, 2)
+ax3 = fig.add_subplot(2, 2, 3)
 
 # Prepare and print pre Seaborn plot
-plot = sns.relplot(data = df_final_post, x='freq',y='coh',kind='line',col='period',hue='channel')
-plot.set_xlabels('freq')
-plot.set_ylabels('coh')
-plot.axes[0][0].set_xticks(range(10,61,10))
-plot.axes[0][0].set_xticklabels([5, 10, 15, 20, 25, 30])
-plt.axvline(7, 0, color = 'k')
-plt.axvline(15, 0, color = 'k')
+plot = sns.lineplot(data = df_final_pre, ax = ax1, x='freq',y='coh',hue='channel')
+plot.set_xlabel('freq')
+plot.set_ylabel('coh')
+plot.set_xticks(range(10,61,10))
+plot.set_xticklabels([5, 10, 15, 20, 25, 30])
+plot.axvline(7, 0, color = 'k')
+plot.axvline(15, 0, color = 'k')
+
+# Prepare and print pre Seaborn plot
+plot = sns.lineplot(data = df_final_post, ax = ax2, x='freq',y='coh', hue='channel')
+plot.set_xlabel('freq')
+plot.set_ylabel('coh')
+plot.set_xticks(range(10,61,10))
+plot.set_xticklabels([5, 10, 15, 20, 25, 30])
+plot.axvline(7, 0, color = 'k')
+plot.axvline(15, 0, color = 'k')
 
 # Prepare and print delta Seaborn plot
-plot = sns.relplot(data = df_final_sub, x='freq',y='coh',kind='line',col='period',hue='channel')
-plot.set_xlabels('freq')
-plot.set_ylabels('coh')
-plot.axes[0][0].set_xticks(range(10,61,10))
-plot.axes[0][0].set_xticklabels([5, 10, 15, 20, 25, 30])
-plt.axvline(7, 0, color = 'k')
-plt.axvline(15, 0, color = 'k')
+plot = sns.lineplot(data = df_final_sub, ax = ax3, x='freq',y='coh', hue='channel')
+plot.set_xlabel('freq')
+plot.set_ylabel('coh')
+plot.set_xticks(range(10,61,10))
+plot.set_xticklabels([5, 10, 15, 20, 25, 30])
+plot.axvline(7, 0, color = 'k')
+plot.axvline(15, 0, color = 'k')
 
 plt.show()
