@@ -6,17 +6,26 @@ import csv
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import simple_GUI as sg
 import os
+from tkinter import Tk   
+from tkinter.filedialog import askopenfilename
 
 print('TNEL Plotter')
 # Load matlab files
-pre_name = os.path.join(sg.path_name, 'RAW_PRE_' + sg.ani_num + "_" + sg.rec_day + "_coh")
-post_name = os.path.join(sg.path_name, 'RAW_POST_' + sg.ani_num + "_" + sg.rec_day + "_coh")
+print('Choose pre data file')
+Tk().withdraw() 
+pre_name = askopenfilename()
+print("File: ", pre_name)
 pre_mat = scio.loadmat(pre_name)
+
+print('Choose post data file')
+Tk().withdraw() 
+post_name = askopenfilename()
+print("File: ", post_name)
 post_mat = scio.loadmat(post_name)
 
-pre_coh = pre_mat['coh_spect'] # Goes into power data
+# Gathers coh, feq, and chan data
+pre_coh = pre_mat['coh_spect'] # Goes into coh data
 post_coh = post_mat['coh_spect']
 freq = pre_mat['freq'][0]  # Gives list of freq values
 channels_mat = pre_mat['cmb_labels']
@@ -114,14 +123,7 @@ while m < loop_num:
 df_final_pre = df_final_pre.reset_index()
 df_final_pre = df_final_pre[['freq','coh','channel','period']]
 
-# Prepare and print pre Seaborn plot
-plot = sns.relplot(data =df_final_pre,x='freq',y='coh',kind='line',col='period',hue='channel')
-plot.set_xlabels('freq')
-plot.set_ylabels('coh')
-plot.axes[0][0].set_xticks(range(10,61,10))
-plot.axes[0][0].set_xticklabels([10, 20, 30, 40, 50, 60])
-plt.axvline(8,0,0.9)
-plt.axvline(4,0,0.9)
+
 
 # CORRECTING df_2_new 
 # Pull frequency data from the index and create new 'freq' column
@@ -157,15 +159,6 @@ while m < loop_num:
 # df_final_post postprocessing
 df_final_post = df_final_post.reset_index()
 df_final_post = df_final_post[['freq','coh','channel','period']]
-
-# Prepare and print pre Seaborn plot
-plot = sns.relplot(data =df_final_post,x='freq',y='coh',kind='line',col='period',hue='channel')
-plot.set_xlabels('freq')
-plot.set_ylabels('coh')
-plot.axes[0][0].set_xticks(range(10,61,10))
-plot.axes[0][0].set_xticklabels([10, 20, 30, 40, 50, 60])
-plt.axvline(8,0,0.9)
-plt.axvline(4,0,0.9)
 
 # CORRECTING sub_df
 # Pull frequency data from the index and create new 'freq' column
@@ -203,12 +196,30 @@ df_final_sub = df_final_sub.reset_index()
 df_final_sub = df_final_sub[['freq','coh','channel','period']]
 
 # Prepare and print pre Seaborn plot
-plot = sns.relplot(data =df_final_sub,x='freq',y='coh',kind='line',col='period',hue='channel')
+plot = sns.relplot(data = df_final_pre, x='freq',y='coh',kind='line',col='period',hue='channel')
 plot.set_xlabels('freq')
 plot.set_ylabels('coh')
 plot.axes[0][0].set_xticks(range(10,61,10))
-plot.axes[0][0].set_xticklabels([10, 20, 30, 40, 50, 60])
-plt.axvline(8,0,0.9)
-plt.axvline(4,0,0.9)
+plot.axes[0][0].set_xticklabels([5, 10, 15, 20, 25, 30])
+plt.axvline(7, 0, color = 'k')
+plt.axvline(15, 0, color = 'k')
+
+# Prepare and print pre Seaborn plot
+plot = sns.relplot(data = df_final_post, x='freq',y='coh',kind='line',col='period',hue='channel')
+plot.set_xlabels('freq')
+plot.set_ylabels('coh')
+plot.axes[0][0].set_xticks(range(10,61,10))
+plot.axes[0][0].set_xticklabels([5, 10, 15, 20, 25, 30])
+plt.axvline(7, 0, color = 'k')
+plt.axvline(15, 0, color = 'k')
+
+# Prepare and print delta Seaborn plot
+plot = sns.relplot(data = df_final_sub, x='freq',y='coh',kind='line',col='period',hue='channel')
+plot.set_xlabels('freq')
+plot.set_ylabels('coh')
+plot.axes[0][0].set_xticks(range(10,61,10))
+plot.axes[0][0].set_xticklabels([5, 10, 15, 20, 25, 30])
+plt.axvline(7, 0, color = 'k')
+plt.axvline(15, 0, color = 'k')
 
 plt.show()
