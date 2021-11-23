@@ -38,6 +38,6 @@ plot = sns.heatmap(data = df, yticklabels = y_label, cbar_kws={'label': 'Coheren
 plot.set_xticks(x_ticks)
 plot.set_xticklabels(x_labels)
 plot.set(title="Change in Coherence Spectra", xlabel="Frequency (HZ)", ylabel="Channel cmb #")
-plot.axvline(x=4, color = 'black')
-plot.axvline(x=8, color = 'black')
+plot.axvline(x=7, color = 'black')
+plot.axvline(x=16, color = 'black')
 plt.show()
