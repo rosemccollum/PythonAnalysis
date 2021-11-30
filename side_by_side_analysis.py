@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import simple_GUI as sg
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
@@ -227,4 +228,5 @@ plot.set_xticklabels([5, 10, 15, 20, 25, 30])
 plot.axvline(7, 0, color = 'k')
 plot.axvline(15, 0, color = 'k')
 
+plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_coh_vs_freq.png')
 plt.show()
