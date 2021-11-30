@@ -1,5 +1,4 @@
-# Goal of script is to turn initial pandas DataFrames for pre and post stimulation coherence into a 3x1 plot with pre/post/delta conherence
-
+# Plots three graphs: pre, post, and delta coh vs channel in line plot, color coordinated by channel. 
 import scipy.io as scio
 import seaborn as sns
 import csv
@@ -11,6 +10,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
 print('TNEL Plotter')
+
 # Load matlab files
 print('Choose pre data file')
 Tk().withdraw() 
@@ -122,7 +122,6 @@ while m < loop_num:
 # df_final_pre postprocessing
 df_final_pre = df_final_pre.reset_index()
 df_final_pre = df_final_pre[['freq','coh','channel','period']]
-
 
 
 # CORRECTING df_2_new 

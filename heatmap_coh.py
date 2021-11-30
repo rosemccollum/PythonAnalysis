@@ -1,3 +1,4 @@
+# Plots heat map of channel combinations across frequencies, with color coded coh
 import scipy.io as scio
 import seaborn as sns
 import csv
@@ -13,7 +14,6 @@ print('Choose pre data file')
 Tk().withdraw() 
 precoh_name = askopenfilename()
 print("File: ", precoh_name)
-#precoh_name = os.path.join(sg.path_name, 'RAW_PRE_' + sg.ani_num + "_" + sg.rec_day + "_coh")
 precoh_mat = scio.loadmat(precoh_name)
 
 # Choose and open post file
@@ -21,7 +21,6 @@ print('Choose post data file')
 Tk().withdraw()
 postcoh_name = askopenfilename()
 print("File: ", postcoh_name)
-#postcoh_name = os.path.join(sg.path_name, 'RAW_POST_' + sg.ani_num + "_" + sg.rec_day + "_coh")
 postcoh_mat = scio.loadmat(postcoh_name)
 
 # Pull coh, freq, and chan data
