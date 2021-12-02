@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import math
-import simple_GUI as sg
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
@@ -66,6 +65,33 @@ temp_df.to_csv(filename, index = False)
 pre_df = pd.read_csv('prepowerdata.csv',index_col=False)
 post_df = pd.read_csv('postpowerdata.csv',index_col=False)
 
+# Drop unnecessary columns from pre and post (just want 4-8) 7-15index
+i = 7
+j = 16
+h = 0
+wanted_freq = pd.DataFrame()
+while i < j:
+    wanted_freq.insert(h, freq[i], pre_df[str(freq[i])])
+    i +=1 
+    h +=1
+
+chan_labels = pre_df['freq']
+pre_df = wanted_freq
+pre_df.insert(0, 'freq', chan_labels)
+
+i = 7
+j = 16
+h = 0
+wanted_freq = pd.DataFrame()
+while i < j:
+    wanted_freq.insert(h, freq[i], post_df[str(freq[i])])
+    i +=1 
+    h +=1
+
+chan_labels = post_df['freq']
+post_df = wanted_freq
+post_df.insert(0, 'freq', chan_labels)
+
 # Remove strings so math can be done on whole data frame 
 pre_chan_labels = pre_df['freq']
 del pre_df['freq']
@@ -117,6 +143,5 @@ delta = delta_melted['delta']
 final_df['delta'] = delta
 
 plot = sns.scatterplot(data = final_df, x = 'pre', y = 'delta', hue = 'chan')
-plot.set_title('Pre Power vs Delta Power')
-plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_pre_pwr_vs_delta_pwr_scatterplot.png')
+plot.set_title('Pre Power vs Delta Power in Theta Freq. Band')
 plt.show()
