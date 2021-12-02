@@ -6,18 +6,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import simple_GUI as sg
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
 # Choose and open pre file
-print('Choose pre data file')
 Tk().withdraw() 
 precoh_name = askopenfilename()
 print("File: ", precoh_name)
 precoh_mat = scio.loadmat(precoh_name)
 
 # Choose and open post file
-print('Choose post data file')
 Tk().withdraw()
 postcoh_name = askopenfilename()
 print("File: ", postcoh_name)
@@ -85,5 +84,7 @@ d_plot.set_xticklabels(x_labels)
 d_plot.set(title="Change in Coherence Spectra", xlabel="Frequency (HZ)", ylabel="Channel cmb #")
 d_plot.axvline(x=7, color = 'black')
 d_plot.axvline(x=16, color = 'black')
+
+plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_coh_heatmap.png')
 plt.show()
 print('done')
