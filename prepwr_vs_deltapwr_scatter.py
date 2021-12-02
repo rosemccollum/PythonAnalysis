@@ -5,17 +5,18 @@ import pandas as pd
 import csv
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import numpy as np
+import math
+import simple_GUI as sg
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
 # Choose and open pre and post file
-print('Choose pre data file')
 Tk().withdraw() 
 prepow_name = askopenfilename()
 print("File: ", prepow_name)
 prepow_mat = scio.loadmat(prepow_name)
 
-print('Choose post data file')
 Tk().withdraw() 
 postpow_name = askopenfilename()
 print("File: ", postpow_name)
@@ -52,7 +53,7 @@ filename = 'postpowerdata.csv'
 j = 0
 with open(filename, 'w') as csvfile:
     csvwriter = csv.writer(csvfile)
-    csvwriter.writerow(freq) # DO WE WANT THIS???
+    csvwriter.writerow(freq) 
     for j in range(len(post_pow)):
         csvwriter.writerow(post_pow[j])
 
@@ -64,6 +65,21 @@ temp_df.to_csv(filename, index = False)
 # Load new csvs into Pandas DataFrame
 pre_df = pd.read_csv('prepowerdata.csv',index_col=False)
 post_df = pd.read_csv('postpowerdata.csv',index_col=False)
+
+# Remove strings so math can be done on whole data frame 
+pre_chan_labels = pre_df['freq']
+del pre_df['freq']
+
+post_chan = post_df['freq']
+del post_df['freq']
+
+# Take log of pre and post dataframes 
+pre_df = 10 * np.log10(pre_df)
+post_df = 10 * np.log10(post_df)
+
+# Put chan labels back 
+pre_df.insert(0, 'freq', pre_chan_labels)
+post_df.insert(0, 'freq', post_chan)
 
 # Subtract post - pre coh
 delta_df = post_df.set_index('freq').subtract(pre_df.set_index('freq'), fill_value=0)
@@ -100,5 +116,7 @@ final_df = pd.melt(pre_df_fin, value_vars=channels, var_name = 'chan', value_nam
 delta = delta_melted['delta']
 final_df['delta'] = delta
 
-sns.scatterplot(data = final_df, x = 'pre', y = 'delta', hue = 'chan')
+plot = sns.scatterplot(data = final_df, x = 'pre', y = 'delta', hue = 'chan')
+plot.set_title('Pre Power vs Delta Power')
+plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_pre_pwr_vs_delta_pwr_scatterplot.png')
 plt.show()
