@@ -13,13 +13,11 @@ from tkinter.filedialog import askopenfilename
 print('TNEL Plotter')
 
 # Load matlab files
-print('Choose pre data file')
 Tk().withdraw() 
 pre_name = askopenfilename()
 print("File: ", pre_name)
 pre_mat = scio.loadmat(pre_name)
 
-print('Choose post data file')
 Tk().withdraw() 
 post_name = askopenfilename()
 print("File: ", post_name)
@@ -203,6 +201,7 @@ ax3 = fig.add_subplot(2, 2, 3)
 
 # Prepare and print pre Seaborn plot
 plot = sns.lineplot(data = df_final_pre, ax = ax1, x='freq',y='coh',hue='channel')
+plot.set_title('Pre Coherence')
 plot.set_xlabel('freq')
 plot.set_ylabel('coh')
 plot.set_xticks(range(10,61,10))
@@ -210,8 +209,9 @@ plot.set_xticklabels([5, 10, 15, 20, 25, 30])
 plot.axvline(7, 0, color = 'k')
 plot.axvline(15, 0, color = 'k')
 
-# Prepare and print pre Seaborn plot
+# Prepare and print post Seaborn plot
 plot = sns.lineplot(data = df_final_post, ax = ax2, x='freq',y='coh', hue='channel')
+plot.set_title('Post Coherence')
 plot.set_xlabel('freq')
 plot.set_ylabel('coh')
 plot.set_xticks(range(10,61,10))
@@ -221,6 +221,7 @@ plot.axvline(15, 0, color = 'k')
 
 # Prepare and print delta Seaborn plot
 plot = sns.lineplot(data = df_final_sub, ax = ax3, x='freq',y='coh', hue='channel')
+plot.set_title("Delta Coherence")
 plot.set_xlabel('freq')
 plot.set_ylabel('coh')
 plot.set_xticks(range(10,61,10))
