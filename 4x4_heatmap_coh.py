@@ -67,7 +67,6 @@ post = {'BLA1-BLA2':[post_df.loc[0],post_df.loc[1],post_df.loc[2],post_df.loc[3]
 pre_df = pd.DataFrame(data=pre,index=['IL1-IL2','IL3-IL4','IL5-IL6','IL7-IL8'])
 post_df = pd.DataFrame(data=post, index=['IL1-IL2','IL3-IL4','IL5-IL6','IL7-IL8'])
 
-print(pre_df.head())
 # Cut pre and post down to the frequency we are looking at
 
 # Create delta dataframe
