@@ -86,7 +86,7 @@ df_2_new = df_2[1:]
 df_new['period'] = 'pre'
 df_2_new['period'] = 'post' 
 sub_df['period'] = 'delta'
- 
+
 # CORRECTING df_new 
 # Pull frequency data from the index and create new 'freq' column
 df_new['freq'] = df_new.index 
@@ -95,9 +95,17 @@ df_new['freq'] = df_new.index
 df_new.reset_index(drop = True, inplace = True)
 # Remove index name from df_3
 # Drop first column of dataframe
-df_new = df_new[['freq', channels[0], channels[1], channels[2], channels[3], channels[4], channels[5], channels[6], channels[7],'period']]
 
-ch_num = 8 # Number of channels - 8 by default. This defines number of while loops
+# Reorganize into correct channel labels
+i = 0
+while i < (len(channels)):
+    df_new.rename(columns = {df_new.columns[i]: channels[i]}, inplace = True)
+    i += 1
+
+freq_col = df_new.pop('freq')
+df_new.insert(0, 'freq', freq_col)
+
+ch_num = len(channels) # Number of channels - 8 by default. This defines number of while loops
 loop_num = ch_num +1 # This is to make sure we can put in the channel number literally and still get the loop to run the correct number of times
 m = 1
 l = 0
@@ -131,9 +139,17 @@ df_2_new['freq'] = df_2_new.index
 df_2_new.reset_index(drop = True, inplace = True)
 # Remove index name from df_3
 # Drop first column of dataframe
-df_2_new = df_2_new[['freq', channels[0], channels[1], channels[2], channels[3], channels[4], channels[5], channels[6], channels[7],'period']]
 
-ch_num = 8 # Number of channels - 8 by default. This defines number of while loops
+# Reorganize into correct channel labels
+i = 0
+while i < (len(channels)):
+    df_2_new.rename(columns = {df_2_new.columns[i]: channels[i]}, inplace = True)
+    i += 1
+
+freq_col = df_2_new.pop('freq')
+df_2_new.insert(0, 'freq', freq_col)
+
+ch_num = len(channels) # Number of channels - 8 by default. This defines number of while loops
 loop_num = ch_num +1 # This is to make sure we can put in the channel number literally and still get the loop to run the correct number of times
 m = 1
 l = 0
@@ -166,9 +182,16 @@ sub_df['freq'] = sub_df.index
 sub_df.reset_index(drop = True, inplace = True)
 # Remove index name from df_3
 # Drop first column of dataframe
-sub_df = sub_df[['freq', channels[0], channels[1], channels[2], channels[3], channels[4], channels[5], channels[6], channels[7],'period']]
+# Reorganize into correct channel labels
+i = 0
+while i < (len(channels)):
+    sub_df.rename(columns = {sub_df.columns[i]: channels[i]}, inplace = True)
+    i += 1
 
-ch_num = 8 # Number of channels - 8 by default. This defines number of while loops
+freq_col = sub_df.pop('freq')
+sub_df.insert(0, 'freq', freq_col)
+
+ch_num = len(channels) # Number of channels - 8 by default. This defines number of while loops
 loop_num = ch_num +1 # This is to make sure we can put in the channel number literally and still get the loop to run the correct number of times
 m = 1
 l = 0
@@ -208,6 +231,7 @@ plot.set_xticks(range(10,61,10))
 plot.set_xticklabels([5, 10, 15, 20, 25, 30])
 plot.axvline(7, 0, color = 'k')
 plot.axvline(15, 0, color = 'k')
+plot.get_legend().remove()
 
 # Prepare and print post Seaborn plot
 plot = sns.lineplot(data = df_final_post, ax = ax2, x='freq',y='coh', hue='channel')
@@ -218,6 +242,7 @@ plot.set_xticks(range(10,61,10))
 plot.set_xticklabels([5, 10, 15, 20, 25, 30])
 plot.axvline(7, 0, color = 'k')
 plot.axvline(15, 0, color = 'k')
+plot.legend(bbox_to_anchor = (1,1))
 
 # Prepare and print delta Seaborn plot
 plot = sns.lineplot(data = df_final_sub, ax = ax3, x='freq',y='coh', hue='channel')
@@ -228,6 +253,8 @@ plot.set_xticks(range(10,61,10))
 plot.set_xticklabels([5, 10, 15, 20, 25, 30])
 plot.axvline(7, 0, color = 'k')
 plot.axvline(15, 0, color = 'k')
+plot.axhline(0, color = 'dimgray', ls = '--')
+plot.get_legend().remove()
 
 plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_coh_vs_freq.png')
 plt.show()
