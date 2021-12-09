@@ -16,6 +16,9 @@ Graphs coherence vs. frequency for pre-stim and post-stim, which a subuplot show
 ### heatmap_coh.py
 Creates a coherence heatmap for a range of frequencies for pre-stim and post-stim, which a subuplot showing delta coherence vs. frequency heatplot.
 
+### 4x4_heatmap_coh.py
+Creates a coherence heatmap for 4-12 Hz frequency band between BLA and IL channel combinations
+
 ### prepwr_vs_deltapwr_scatter.py
 Creates a scatterplot graphing pre-stim power vs. delta power.
 
