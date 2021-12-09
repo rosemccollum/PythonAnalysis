@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import math
+import simple_GUI as sg
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
@@ -143,5 +144,9 @@ delta = delta_melted['delta']
 final_df['delta'] = delta
 
 plot = sns.scatterplot(data = final_df, x = 'pre', y = 'delta', hue = 'chan')
-plot.set_title('Pre Power vs Delta Power in Theta Freq. Band')
+plot.set_title('Delta Power vs Pre Power in Theta Freq. Band (4-8 Hz)')
+plot.set_xlabel('log(pre power) (W)')
+plot.set_ylabel('log(delta power) (W)')
+#plot.legend(bbox_to_anchor = (1,1))
+plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_deltapwr_vs_prepwr_log_scatter.png')
 plt.show()
