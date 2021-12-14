@@ -104,12 +104,28 @@ del post_df['freq']
 pre_df = 10 * np.log10(pre_df)
 post_df = 10 * np.log10(post_df)
 
-# Put chan labels back 
-pre_df.insert(0, 'freq', pre_chan_labels)
-post_df.insert(0, 'freq', post_chan)
+# Taking average of channels and putting into df
+avg_pre = pre_df.mean(axis = 1)
+avg_post = post_df.mean(axis = 1)
+
+# Taking standard deviation of channels
+std_pre = pre_df.std(axis = 1)
+std_post = post_df.std(axis = 1)
+
+# Adding standard deviation to average 
+pre_added = avg_pre.add(std_pre)
+post_added = avg_post.add(std_post)
+
+# Turning series into dataframes 
+pre_df = pre_added.to_frame()
+post_df = post_added.to_frame()
+
+# Put chan labels back
+pre_df.insert(0, 'chan', pre_chan_labels)
+post_df.insert(0, 'chan', post_chan)
 
 # Subtract post - pre coh
-delta_df = post_df.set_index('freq').subtract(pre_df.set_index('freq'), fill_value=0)
+delta_df = post_df.set_index('chan').subtract(pre_df.set_index('chan'), fill_value=0)
 
 # Transpose DataFrame
 pre_df = pre_df.T
@@ -119,34 +135,20 @@ delta_df = delta_df.T
 pre_df.columns = pre_df.iloc[0]
 pre_df_fin = pre_df[1:]
 
-# FIXING DELTA DF
-# Remove the frequency data from the index
-delta_df.reset_index(drop = True, inplace = True)
-
-# Drop first column of dataframe
-delta_df = delta_df[[channels[0], channels[1], channels[2], channels[3], channels[4], channels[5], channels[6], channels[7]]]
-
 # Turn into long form data
 delta_melted = pd.melt(delta_df, value_vars=channels, var_name = 'chan', value_name= 'delta')
-
-# FIXING PRE DF
-# Remove the frequency data from the index
-pre_df_fin.reset_index(drop = True, inplace = True)
-
-# Drop first column of dataframe
-pre_df_fin = pre_df_fin[[channels[0], channels[1], channels[2], channels[3], channels[4], channels[5], channels[6], channels[7]]]
-
-# Turn into long form data
 final_df = pd.melt(pre_df_fin, value_vars=channels, var_name = 'chan', value_name= 'pre')
 
 # Adding delta column to pre data 
 delta = delta_melted['delta']
 final_df['delta'] = delta
 
+# Plotting data
+fig = plt.gcf()
+fig.set_size_inches(10,6)
 plot = sns.scatterplot(data = final_df, x = 'pre', y = 'delta', hue = 'chan')
 plot.set_title('Delta Power vs Pre Power in Theta Freq. Band (4-8 Hz)')
 plot.set_xlabel('log(pre power) (W)')
 plot.set_ylabel('log(delta power) (W)')
-#plot.legend(bbox_to_anchor = (1,1))
-plt.savefig(sg.path_name + '\\' + sg.ani_num + '_' + sg.rec_day + '_deltapwr_vs_prepwr_log_scatter.png')
+plt.grid()
 plt.show()
