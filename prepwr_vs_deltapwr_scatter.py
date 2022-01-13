@@ -13,26 +13,45 @@ from tkinter import filedialog
 from pathlib import Path
 import pow_scatter_helper as psh
 
-
 # Here we go boys
 big_fig = plt.figure()
-ax1 = big_fig.add_subplot(2, 2, 1)
-ax2 = big_fig.add_subplot(2, 2, 2)
-ax3 = big_fig.add_subplot(2, 2, 3)
-ax4 = big_fig.add_subplot(2, 2, 4)
-ax_ls = [ax1, ax2, ax3, ax4]
-
+sns.set_style("whitegrid")
 big_fig.suptitle('Delta Power vs Pre Power in Theta Freq. Band (4-8 Hz)')
-final_graphs = []
+
+# Determine formatting based on num days 
+ax_var_ls = []
+for k in range(psh.num_days):
+    ax_var_ls.append('ax' + str(k+1))
+
+if psh.num_days <= 4:
+    row = 2
+    col = 2
+if psh.num_days > 4 and psh.num_days <= 6: 
+    row = 2
+    col = 3
+if psh.num_days > 6:
+    row = 3
+    col = 3
+for q in range(psh.num_days):
+    ax_var_ls[q] = big_fig.add_subplot(row, col, q+1)
 
 for p in range(len(psh.arr)):
+    # Tests if too many days to analyze
     if len(psh.arr) > 9:
         print('Too many days')
         break
-    # Open pre and post files 
-    prepow_name = psh.folder + '/day' + str(p+1) + '/' + psh.arr[p][1]
+
+    # Tests if days are skipped 
+    add = 1
+    while os.path.exists(psh.folder + '/day' + str(p+add)) != True:
+        add += 1
+    
+    # Open pre and post files
+    prepow_name = psh.folder + '/day' + str(p+add) + '/' + psh.arr[p][1]
+    print("File: ", prepow_name)
     prepow_mat = scio.loadmat(prepow_name)
-    postpow_name = psh.folder + '/day' + str(p+1) + '/' + psh.arr[p][0]
+    postpow_name = psh.folder + '/day' + str(p+add) + '/' + psh.arr[p][0]
+    print("File: ", postpow_name)
     postpow_mat = scio.loadmat(postpow_name)
 
     # Pull needed data 
@@ -159,18 +178,17 @@ for p in range(len(psh.arr)):
     # Plotting data
     fig = plt.gcf()
     fig.set_size_inches(10,6)
-    ax_num = ax_ls[p]
+    ax_num = ax_var_ls[p]
     plot = sns.scatterplot(data = final_df, ax = ax_num, x = 'pre', y = 'delta', hue = 'chan')
     plot.set(ylim = (-4,4))
     plot.set(xlim =(15, 40))
     plot.get_legend().remove()
-    final_graphs.append(plot)
     plot.set_xlabel('log(pre power) (W)')
     plot.set_ylabel('log(delta power) (W)')
-    
+
 handles, labels = plot.get_legend_handles_labels()
 big_fig.legend(handles, labels, loc = 'center right')
-plt.grid()
+
 plt.show()
 
 print('done')
