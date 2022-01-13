@@ -25,7 +25,6 @@ for i in range(len(folders_ls)):
     day_folder = os.path.join(folder, folders_ls[i])
     pow_files = []
     for (root, dirs, files) in os.walk(day_folder):
-        print(files)
         file_names = files
     for j in file_names:
         if 'TFR' in j and ('PRE' in j or 'POST' in j) and 'xls' not in j:
