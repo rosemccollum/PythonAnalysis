@@ -1,5 +1,9 @@
 import cv2
 from datetime import datetime
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 # Updated to run various Dev proj. video functions by J. Whear on 13Jan2022, updated 20Jan2022
 
 # stop_threads is used to stop recording at specified sections of OEP recordings
@@ -78,8 +82,7 @@ def compile_video_from_png(video_path,rat,day,seconds):
 def overlay_accel (video_path, rat, day, img_loc, output_path):
     i = 0
     j = 0
-    # img_loc = r'D:\EPHYSDATA\TESTS\Threading2\Images'
-    file_name = 'devTestday_Test-{}.png'.format(i)
+    file_name = '{}{}-{}.png'.format(rat,day,i)
     image = cv2.imread(img_loc + '\\' + file_name)
     scale_percent = 30 # percent of the original image
     height = int(image.shape[0] * scale_percent / 100)
@@ -94,21 +97,30 @@ def overlay_accel (video_path, rat, day, img_loc, output_path):
     writer = cv2.VideoWriter(output_path, fourcc, fps, (640,  480))
     font = cv2.FONT_HERSHEY_SIMPLEX
     alpha = 0.6
+    print('Overlaying {} {} acceleration onto recording'.format(rat,day))
 
     while(cap.isOpened()):
         j += 1
         if j > 29:
             i += 1
             j = 0
-            file_name = 'devTestday_Test-{}.png'.format(i)
+            file_name = '{}{}-{}.png'.format(rat,day,i)
             image = cv2.imread(img_loc + '\\' + file_name)
             image_resized = cv2.resize(image,dim, interpolation = cv2.INTER_AREA)
-            print(file_name)
+            print('Writing {}'.format(file_name))
         ret, frame = cap.read()
         image_resized_x, image_resized_y, image_resized_z = image_resized.shape[0], image_resized.shape[1], image_resized.shape[2]
         image_x = image_resized_x
         image_y = image_resized_y
-        added_image = cv2.addWeighted(frame[480-image_x:480,640-image_y:640,:],alpha,image_resized[0:image_x,0:image_y,:],1-alpha,0)
+        try: # If the frames number isn't exactly the same, it will fail here. Break out and keep going
+            added_image = cv2.addWeighted(frame[480-image_x:480,640-image_y:640,:],alpha,image_resized[0:image_x,0:image_y,:],1-alpha,0)
+        
+        except:
+            cap.release()
+            writer.release()
+            cv2.destroyAllWindows()
+            break
+
         frame[480-image_x:480,640-image_y:640] = added_image # X then Y
         writer.write(frame)
         cv2.imshow('TNEL Dev. Proj ' + rat + day, frame)
@@ -119,5 +131,27 @@ def overlay_accel (video_path, rat, day, img_loc, output_path):
             cv2.destroyAllWindows()
             break
 
+def create_accel_png(rat,day,cleandata_matlab_struct,output_path,seconds,condition): # Seconds is int
+    df = pd.DataFrame(cleandata_matlab_struct)
+    
+    # Reformat DataFrame
+    df_final = df.iloc[32:35,:]
+    df_final = df_final.T
+    df_final.columns = ['aux1 (x)', 'aux2 (y)', 'aux3 (z)']
+    df_final['abs'] = np.sqrt(abs(pow(df_final['aux1 (x)'],2) + pow(df_final['aux2 (y)'],2) + pow(df_final['aux3 (z)'],2)))
+
+    for i in range(len(df_final)):
+        df_final_seconds = df_final[:i] #i
+        # Plot results using Seaborn
+        ax = sns.lineplot(data=df_final_seconds['abs'],color='#FF5733')
+        ax.set(ylim = (0,2000))
+        ax.set(xlim =(0,seconds))
+        ax.set_title('Acceleration Vs. Time (s) - {} {}'.format(rat,day))
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Acceleration')
+        plt.savefig('{}\{}{}-{}.png'.format(output_path,rat,day,i))
+        percent = round(int(i)/int(len(df_final))*100,2)
+        print('{} acceleration graphing is {}% complete'.format(condition,percent))
+
 def runSimpleVid(camera, path):
-	sv = SimpleVid(camera,path)
+    sv = SimpleVid(camera,path)
