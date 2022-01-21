@@ -11,9 +11,10 @@ import os
 from tkinter import Tk   
 from tkinter import filedialog
 from pathlib import Path
-import pow_scatter_helper as psh
+import my_pow_scatter_helper as psh
 
-# Here we go boys
+print('starting...')
+# Setting up figure
 big_fig = plt.figure()
 sns.set_style("whitegrid")
 big_fig.suptitle('Delta Power vs Pre Power in Theta Freq. Band (4-8 Hz)')
@@ -35,6 +36,7 @@ if psh.num_days > 6:
 for q in range(psh.num_days):
     ax_var_ls[q] = big_fig.add_subplot(row, col, q+1)
 
+d = 0
 for p in range(len(psh.arr)):
     # Tests if too many days to analyze
     if len(psh.arr) > 9:
@@ -45,15 +47,19 @@ for p in range(len(psh.arr)):
     add = 1
     while os.path.exists(psh.folder + '/day' + str(p+add)) != True:
         add += 1
-    
-    # Open pre and post files
-    prepow_name = psh.folder + '/day' + str(p+add) + '/' + psh.arr[p][1]
-    print("File: ", prepow_name)
-    prepow_mat = scio.loadmat(prepow_name)
-    postpow_name = psh.folder + '/day' + str(p+add) + '/' + psh.arr[p][0]
-    print("File: ", postpow_name)
-    postpow_mat = scio.loadmat(postpow_name)
+   
+    while os.path.isfile(psh.folder + '/day' + str(d + add) + '/' + psh.arr[p][1]) != True:
+        p += 1
 
+    # Open pre and post files
+    prepow_name = psh.folder + '/day' + str(d+add) + '/' + psh.arr[p][1]
+    #print("File: ", prepow_name)
+    prepow_mat = scio.loadmat(prepow_name)
+    postpow_name = psh.folder + '/day' + str(d+add) + '/' + psh.arr[p][0]
+    #print("File: ", postpow_name)
+    postpow_mat = scio.loadmat(postpow_name)
+    d += 1
+    
     # Pull needed data 
     pre_pow = prepow_mat['powspctrm'] # Goes into power data
     post_pow = postpow_mat['powspctrm']
@@ -171,23 +177,35 @@ for p in range(len(psh.arr)):
     delta_melted = pd.melt(delta_df, value_vars=channels, var_name = 'chan', value_name= 'delta')
     final_df = pd.melt(pre_df_fin, value_vars=channels, var_name = 'chan', value_name= 'pre')
 
+    # Pulling out day and rat for title
+    temp = prepow_name.split('/')
+    for l in range(len(temp)):
+        if 'dev' in temp[l] and 'RAW' not in temp[l]:
+            rat = temp[l]
+        if 'day' in temp[l] and 'RAW' not in temp[l]:
+            day = temp[l]
+
     # Adding delta column to pre data 
     delta = delta_melted['delta']
     final_df['delta'] = delta
-
+    #print(p)
+    #print(final_df)
     # Plotting data
     fig = plt.gcf()
     fig.set_size_inches(10,6)
     ax_num = ax_var_ls[p]
     plot = sns.scatterplot(data = final_df, ax = ax_num, x = 'pre', y = 'delta', hue = 'chan')
+    plot.set(title = day)
     plot.set(ylim = (-4,4))
     plot.set(xlim =(15, 40))
     plot.get_legend().remove()
     plot.set_xlabel('log(pre power) (W)')
     plot.set_ylabel('log(delta power) (W)')
 
+
 handles, labels = plot.get_legend_handles_labels()
 big_fig.legend(handles, labels, loc = 'center right')
+plt.tight_layout()
 
 plt.show()
 
