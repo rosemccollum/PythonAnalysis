@@ -191,24 +191,32 @@ for h in range(len(prepow_df)):
     if 'IL' in prepow_df['chan'][h]:
         pow_labels.append(prepow_df['chan'][h])
         pow_values.append(prepow_df[0][h])
+for m in range(len(pow_labels)):
+    pow_labels[m] = pow_labels[m] + ' (' + str(round(pow_values[m], 1)) + ')'
 
-# Graph it
-fig = plt.figure(figsize = (11,6))
-plot = sns.scatterplot(data = final_df, x = 'pow', y = 'coh', hue = 'BLA')
-plot.set_xlabel('Pre Power')
-plot.set_ylabel('Delta Coherence')
-plot.set_xticks(pow_values)
-plot.set_xticklabels(pow_labels)
-plt.grid()
-
-# Save fig w/ day and name
-dir = precoh_name.split('RAW')
+# Pull rat and day for saving and title
 temp = precoh_name.split('/')
 for l in range(len(temp)):
     if 'dev' in temp[l] and 'RAW' not in temp[l]:
         rat = temp[l]
     if 'day' in temp[l] and 'RAW' not in temp[l]:
         day = temp[l]
+
+# Graph it
+plot = sns.scatterplot(data = final_df, x = 'pow', y = 'coh', hue = 'BLA')
+plot.set_title(rat + ' ' + day)
+plot.set_xlabel('Pre Power ((μV)²/Hz)')
+plot.set_ylabel('Delta Coherence in Theta Band (4-12 Hz)')
+plot.set_xticks(pow_values)
+plt.xticks(rotation = 45, ha = 'right')
+plot.set_xticklabels(pow_labels)
+plot.set(ylim = (-0.2,0.2))
+plot.set(xlim = (0, 2000))
+plt.tight_layout()
+plt.grid()
+
+# Save fig w/ day and name
+dir = precoh_name.split('RAW')
     
 plt.savefig(dir[0] + rat + '_' + day + '_prepow_vs_deltacoh.png')
 plt.show()
