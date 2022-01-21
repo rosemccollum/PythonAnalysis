@@ -146,15 +146,26 @@ del postcoh_df['freq']
 pre_pow_labels = prepow_df['freq']
 del prepow_df['freq']
 
+# Take log of pre and post dataframes 
+prepow_df = 10 * np.log10(prepow_df)
+
 # Averaging across theta band
 avg_pre_coh = precoh_df.mean(axis = 1)
 avg_post_coh = postcoh_df.mean(axis = 1)
 avg_pre_pow = prepow_df.mean(axis = 1)
 
+# Taking standard deviation of channels
+std_pre = prepow_df.std(axis = 1)
+#std_post = post_df.std(axis = 1)
+
+# Adding standard deviation to average 
+pre_added = avg_pre_pow.add(std_pre)
+#post_added = avg_post.add(std_post)
+
 # Turning avg series back into dataframe
 precoh_df = avg_pre_coh.to_frame()
 postcoh_df = avg_post_coh.to_frame()
-prepow_df = avg_pre_pow.to_frame()
+prepow_df = pre_added.to_frame()
 
 # Put chan labels back
 precoh_df.insert(0, 'chan', pre_coh_labels)
@@ -211,7 +222,7 @@ plot.set_xticks(pow_values)
 plt.xticks(rotation = 45, ha = 'right')
 plot.set_xticklabels(pow_labels)
 plot.set(ylim = (-0.2,0.2))
-plot.set(xlim = (0, 2000))
+plot.set(xlim = (0, 40))
 plt.tight_layout()
 plt.grid()
 
