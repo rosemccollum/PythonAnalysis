@@ -27,11 +27,8 @@ Graphs coherence vs. frequency. This has largely been replaced by side_by_side_a
 ### matlab_struct_to_pd_df_importer.py
 A general framework for accessing matlab .mat files in python using scipy and pandas.
 
-### create_ds_acceleration.m
-Takes an OEP recording and returns a Matlab struct which can be read by intan_accelerometry_struct_viewer.py.
-
-### intan_accelerometry_struct_viewer.py
-Variant of matlab_struct_to_pd_df_importer.py. Takes in a "_cleandata_struct.mat" file and returns a seaborn graph of acceleration over time.
+### create_plots.py
+Variant of matlab_struct_to_pd_df_importer.py. Takes in a _log_file.mat_ file and returns a seaborn graph of acceleration over time.
 
 ## Animal Tracking
 ### open_cv_object_tracker.py
