@@ -1,5 +1,5 @@
 # Python Analysis
-#### Updated: 13Jan2022
+#### Updated: 26Jan2022
 Project Overview: Developing a Python-based data analysis/visualization pathway for the TNE Lab.
 
 Long-Term Objectives (TBD): Debug and expand to fit growing needs of TNE Lab - How can we use this project to produce visuals that contextualize what we are trying to accomplish at a lab-wide level?
