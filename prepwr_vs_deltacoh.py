@@ -223,6 +223,7 @@ plt.xticks(rotation = 45, ha = 'right')
 plot.set_xticklabels(pow_labels)
 plot.set(ylim = (-0.2,0.2))
 plot.set(xlim = (0, 40))
+plot.axhline(0, color = 'dimgray', ls = '--')
 plt.tight_layout()
 plt.grid()
 
