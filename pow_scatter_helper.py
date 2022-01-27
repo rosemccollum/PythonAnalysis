@@ -35,5 +35,15 @@ for i in range(len(folders_ls)):
 for i in range(len(files_ls)):
     arr[i] = files_ls[i]
 
-# Pass to prepwr...scatter
 
+# Pass to prepwr...scatter
+print(arr)
+
+# [['RAW_POST_dev2110_day1_TFR.mat', 'RAW_PRE_dev2110_day1_TFR.mat'],
+#  ['RAW_POST_dev2110_day11_TFR.mat', 'RAW_PRE_dev2110_day11_TFR.mat'],
+#  [],
+#  ['RAW_POST_dev2110_day2_TFR.mat', 'RAW_PRE_dev2110_day2_TFR.mat'], 
+# ['RAW_POST_dev2110_day3_TFR.mat', 'RAW_PRE_dev2110_day3_TFR.mat'], 
+# ['RAW_POST_dev2110_day4Awake_TFR.mat', 'RAW_PRE_dev2110_day4Awake_TFR.mat'], 
+# ['RAW_POST_dev2110_day6_TFR.mat', 'RAW_PRE_dev2110_day6_TFR.mat'], 
+# ['RAW_POST_dev2110_day9_TFR.mat', 'RAW_PRE_dev2110_day9_TFR.mat']]
