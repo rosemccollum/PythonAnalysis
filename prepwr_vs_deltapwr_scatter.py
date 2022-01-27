@@ -1,4 +1,5 @@
 # Plot pre pwr vs delta pwr in scatter plot color coordinated by channel with the channel locked channel a bigger dot
+from re import L
 import scipy.io as scio
 import seaborn as sns
 import pandas as pd
@@ -12,6 +13,7 @@ from tkinter import Tk
 from tkinter import filedialog
 from pathlib import Path
 import my_pow_scatter_helper as psh
+import re
 
 print('starting...')
 # Setting up figure
@@ -43,23 +45,27 @@ for p in range(len(psh.arr)):
         print('Too many days')
         break
 
-    # Tests if days are skipped 
-    add = 1
-    while os.path.exists(psh.folder + '/day' + str(p+add)) != True:
-        add += 1
-   
-    while os.path.isfile(psh.folder + '/day' + str(d + add) + '/' + psh.arr[p][1]) != True:
-        p += 1
+    # Pull day out of file name
+    pieces = psh.arr[p][0].split('_')
+    day = ''
+    for l in pieces:
+        if 'day' in l:
+            day = l 
+    
+    # Make sure its just day and number 
+    temp = re.search('\w+\d+', day)
+    begin = temp.span()[0]
+    end = temp.span()[1]
+    day = day[begin:end]
 
     # Open pre and post files
-    prepow_name = psh.folder + '/day' + str(d+add) + '/' + psh.arr[p][1]
+    prepow_name = psh.folder + '/' + day + '/' + psh.arr[p][1]
     #print("File: ", prepow_name)
     prepow_mat = scio.loadmat(prepow_name)
-    postpow_name = psh.folder + '/day' + str(d+add) + '/' + psh.arr[p][0]
+    postpow_name = psh.folder + '/' + day + '/' + psh.arr[p][0]
     #print("File: ", postpow_name)
     postpow_mat = scio.loadmat(postpow_name)
-    d += 1
-    
+
     # Pull needed data 
     pre_pow = prepow_mat['powspctrm'] # Goes into power data
     post_pow = postpow_mat['powspctrm']
@@ -188,8 +194,7 @@ for p in range(len(psh.arr)):
     # Adding delta column to pre data 
     delta = delta_melted['delta']
     final_df['delta'] = delta
-    #print(p)
-    #print(final_df)
+
     # Plotting data
     fig = plt.gcf()
     fig.set_size_inches(10,6)
@@ -200,13 +205,15 @@ for p in range(len(psh.arr)):
     plot.set(xlim =(15, 40))
     plot.get_legend().remove()
     plot.set_xlabel('log(pre power) (W)')
-    plot.set_ylabel('log(delta power) (W)')
+    plot.set_ylabel('delta log(power) (W)')
+    plot.axhline(0, color = 'dimgray', ls = '--')
 
 
 handles, labels = plot.get_legend_handles_labels()
 big_fig.legend(handles, labels, loc = 'center right')
 plt.tight_layout()
 
+plt.savefig(psh.folder +  '/prepow_vs_deltapow.png')
 plt.show()
 
 print('done')
