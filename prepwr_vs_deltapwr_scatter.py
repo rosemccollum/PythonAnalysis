@@ -12,7 +12,7 @@ import os
 from tkinter import Tk   
 from tkinter import filedialog
 from pathlib import Path
-import my_pow_scatter_helper as psh
+import pow_scatter_helper as psh
 import re
 
 print('starting...')
