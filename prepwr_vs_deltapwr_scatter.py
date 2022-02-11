@@ -12,7 +12,7 @@ import os
 from tkinter import Tk   
 from tkinter import filedialog
 from pathlib import Path
-import pow_scatter_helper as psh
+from graphs_helper import prepow_help
 import re
 
 print('starting...')
@@ -21,32 +21,35 @@ big_fig = plt.figure()
 sns.set_style("whitegrid")
 big_fig.suptitle('Delta Power vs Pre Power in Theta Freq. Band (4-8 Hz)')
 
+# Call helper
+arr, num_days, folder = prepow_help()
+
 # Determine formatting based on num days 
 ax_var_ls = []
-for k in range(psh.num_days):
+for k in range(num_days):
     ax_var_ls.append('ax' + str(k+1))
 
-if psh.num_days <= 4:
+if num_days <= 4:
     row = 2
     col = 2
-if psh.num_days > 4 and psh.num_days <= 6: 
+if num_days > 4 and num_days <= 6: 
     row = 2
     col = 3
-if psh.num_days > 6:
+if num_days > 6:
     row = 3
     col = 3
-for q in range(psh.num_days):
+for q in range(num_days):
     ax_var_ls[q] = big_fig.add_subplot(row, col, q+1)
 
 d = 0
-for p in range(len(psh.arr)):
+for p in range(len(arr)):
     # Tests if too many days to analyze
-    if len(psh.arr) > 9:
+    if len(arr) > 9:
         print('Too many days')
         break
 
     # Pull day out of file name
-    pieces = psh.arr[p][0].split('_')
+    pieces = arr[p][0].split('_')
     day = ''
     for l in pieces:
         if 'day' in l:
@@ -59,10 +62,10 @@ for p in range(len(psh.arr)):
     day = day[begin:end]
 
     # Open pre and post files
-    prepow_name = psh.folder + '/' + day + '/' + psh.arr[p][1]
+    prepow_name = folder + '/' + day + '/' + arr[p][1]
     #print("File: ", prepow_name)
     prepow_mat = scio.loadmat(prepow_name)
-    postpow_name = psh.folder + '/' + day + '/' + psh.arr[p][0]
+    postpow_name = folder + '/' + day + '/' + arr[p][0]
     #print("File: ", postpow_name)
     postpow_mat = scio.loadmat(postpow_name)
 
@@ -213,7 +216,7 @@ handles, labels = plot.get_legend_handles_labels()
 big_fig.legend(handles, labels, loc = 'center right')
 plt.tight_layout()
 
-plt.savefig(psh.folder +  '/prepow_vs_deltapow.png')
+plt.savefig(folder +  '/prepow_vs_deltapow.png')
 plt.show()
 
 print('done')
