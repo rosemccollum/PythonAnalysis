@@ -35,33 +35,22 @@ channels = []
 for g in range(len(channels_mat)):
     channels.append(channels_mat[g][0][0])
 
-# Writes CSV value w/ pre coh, no channel lables  
-filename = 'precohdata.csv'
-i = 0
-with open(filename, 'w') as csvfile:
-    csvwriter = csv.writer(csvfile)
-    csvwriter.writerow(freq)
-    for i in range(len(pre_coh)):
-        csvwriter.writerow(pre_coh[i])
+def writeCSV(filename, data):
+    # Writes CSV of values   
+    i = 0
+    with open(filename, 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(freq)
+        for i in range(len(data)):
+            csvwriter.writerow(data[i])
 
-# Adding chan labels 
-temp_df = pd.read_csv(filename)
-temp_df.insert(0, column='freq', value = channels)
-temp_df.to_csv(filename, index = False)
+    # Adding chan labels 
+    temp_df = pd.read_csv(filename)
+    temp_df.insert(0, column='freq', value = channels)
+    temp_df.to_csv(filename, index = False)
 
-# Writes CSV w/ post coh, no channel lables 
-filename = 'postcohdata.csv'
-j = 0
-with open(filename, 'w') as csvfile:
-    csvwriter = csv.writer(csvfile)
-    csvwriter.writerow(freq) 
-    for j in range(len(post_coh)):
-        csvwriter.writerow(post_coh[j])
-
-# Adding chan label
-temp_df = pd.read_csv(filename)
-temp_df.insert(0, column='freq', value = channels)
-temp_df.to_csv(filename, index = False)
+writeCSV('precohdata.csv', pre_coh)
+writeCSV('postcohdata.csv', post_coh)
 
 # Load new csvs into Pandas DataFrame
 df = pd.read_csv('precohdata.csv',index_col=False)
@@ -93,8 +82,6 @@ df_new['freq'] = df_new.index
 
 # Remove the frequency data from the index
 df_new.reset_index(drop = True, inplace = True)
-# Remove index name from df_3
-# Drop first column of dataframe
 
 # Reorganize into correct channel labels
 i = 0
@@ -105,7 +92,7 @@ while i < (len(channels)):
 freq_col = df_new.pop('freq')
 df_new.insert(0, 'freq', freq_col)
 
-ch_num = len(channels) # Number of channels - 8 by default. This defines number of while loops
+ch_num = len(channels) # Number of channels This defines number of while loops
 loop_num = ch_num +1 # This is to make sure we can put in the channel number literally and still get the loop to run the correct number of times
 m = 1
 l = 0
