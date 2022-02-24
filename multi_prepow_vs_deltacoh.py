@@ -14,7 +14,7 @@ from graphs_helper import pow_vs_coh_help
 import re
 
 # Call file grabber
-arr, num_days, folder = pow_vs_coh_help
+arr, num_days, folder = pow_vs_coh_help()
 
 # Pull day out of file name
 pieces = arr[0][0].split('_')
@@ -25,6 +25,7 @@ for l in pieces:
 
 # Setting up figure
 big_fig = plt.figure()
+sns.set_style("whitegrid")
 big_fig.suptitle('Delta Coherence in ' + rat)
 
 # Determine formatting based on num days 
@@ -101,12 +102,16 @@ for p in range(len(arr)):
             csvwriter.writerow(freq)
             for i in range(len(data)):
                 csvwriter.writerow(data[i])
-
         # Adding chan labels 
-        temp_df = pd.read_csv(filename)
-        temp_df.insert(0, column='freq', value = channels)
-        temp_df.to_csv(filename, index = False)
-
+        if 'pow' in filename:
+            temp_df = pd.read_csv(filename)
+            temp_df.insert(0, column='freq', value = pow_channels)
+            temp_df.to_csv(filename, index = False)
+        else: 
+            temp_df = pd.read_csv(filename)
+            temp_df.insert(0, column='freq', value = channels)
+            temp_df.to_csv(filename, index = False)
+        
     writeCSV('precohdata.csv', pre_coh)
     writeCSV('postcohdata.csv', post_coh)
     writeCSV('prepowerdata.csv', pre_pow)
@@ -234,22 +239,24 @@ for p in range(len(arr)):
             day = temp[l]
 
     # Graph it
-    plot = sns.scatterplot(data = final_df, x = 'pow', y = 'coh', hue = 'BLA')
-    plot.set_title(rat + ' ' + day)
+    fig = plt.gcf()
+    fig.set_size_inches(10,6)
+    ax_num = ax_var_ls[p]
+    plot = sns.scatterplot(data = final_df, ax = ax_num, x = 'pow', y = 'coh', hue = 'BLA')
+    plot.set_title(day)
     plot.set_xlabel('Pre Power ((μV)²/Hz)')
-    plot.set_ylabel('Delta Coherence in Theta Band (4-12 Hz)')
+    plot.set_ylabel('Delta Coherence in \n Theta Band (4-12 Hz)')
     plot.set_xticks(pow_values)
-    plt.xticks(rotation = 45, ha = 'right')
-    plot.set_xticklabels(pow_labels)
+    plot.set_xticklabels(pow_labels, rotation = 45 )
     plot.set(ylim = (-0.2,0.2))
     plot.set(xlim = (0, 40))
+    plot.get_legend().remove()
     plot.axhline(0, color = 'dimgray', ls = '--')
     plt.tight_layout()
     plt.grid()
 
-# Save fig w/ day and name
-dir = precoh_name.split('RAW')
-    
-plt.savefig(dir[0] + rat + '_' + day + '_prepow_vs_deltacoh.png')
+handles, labels = plot.get_legend_handles_labels()
+big_fig.legend(handles, labels, loc = 'center')    
+plt.savefig(folder + '/all_prepow_vs_deltacoh.png')
 plt.show()
 print('done')
