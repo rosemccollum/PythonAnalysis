@@ -103,14 +103,12 @@ for p in range(len(arr)):
             for i in range(len(data)):
                 csvwriter.writerow(data[i])
         # Adding chan labels 
+        chan = channels 
         if 'pow' in filename:
-            temp_df = pd.read_csv(filename)
-            temp_df.insert(0, column='freq', value = pow_channels)
-            temp_df.to_csv(filename, index = False)
-        else: 
-            temp_df = pd.read_csv(filename)
-            temp_df.insert(0, column='freq', value = channels)
-            temp_df.to_csv(filename, index = False)
+            chan = pow_channels 
+        temp_df = pd.read_csv(filename)
+        temp_df.insert(0, column='freq', value = chan)
+        temp_df.to_csv(filename, index = False)
         
     writeCSV('precohdata.csv', pre_coh)
     writeCSV('postcohdata.csv', post_coh)
@@ -122,44 +120,23 @@ for p in range(len(arr)):
     prepow_df = pd.read_csv('prepowerdata.csv', index_col = False)
 
     # Drop unnecessary columns from dfs (just want 4-12) 
-    i = 7
-    j = 24
-    h = 0
-    wanted_freq = pd.DataFrame()
-    while i < j:
-        wanted_freq.insert(h, freq[i], precoh_df[str(freq[i])])
-        i +=1 
-        h +=1
+    def get_theta_band(df):
+        i = 7
+        j = 24
+        h = 0
+        wanted_freq = pd.DataFrame()
+        while i < j:
+            wanted_freq.insert(h, freq[i], df[str(freq[i])])
+            i +=1 
+            h +=1
 
-    chan_labels = precoh_df['freq']
-    precoh_df = wanted_freq
-    precoh_df.insert(0, 'freq', chan_labels)
-
-    i = 7
-    j = 24
-    h = 0
-    wanted_freq = pd.DataFrame()
-    while i < j:
-        wanted_freq.insert(h, freq[i], postcoh_df[str(freq[i])])
-        i += 1 
-        h +=1
-
-    chan_labels = postcoh_df['freq']
-    postcoh_df = wanted_freq
-    postcoh_df.insert(0, 'freq', chan_labels)
-
-    i = 7
-    j = 24
-    h = 0
-    wanted_freq = pd.DataFrame()
-    while i < j:
-        wanted_freq.insert(h, freq[i], prepow_df[str(freq[i])])
-        i +=1 
-        h +=1
-
-    chan_labels = prepow_df['freq']
-    prepow_df = wanted_freq
-    prepow_df.insert(0, 'freq', chan_labels)
+        chan_labels = df['freq']
+        df = wanted_freq
+        df.insert(0, 'freq', chan_labels)
+        return df
+    get_theta_band(precoh_df)
+    get_theta_band(postcoh_df)
+    get_theta_band(prepow_df)
 
     # Take of chan labels to do math
     pre_coh_labels = precoh_df['freq']
@@ -181,11 +158,9 @@ for p in range(len(arr)):
 
     # Taking standard deviation of channels
     std_pre = prepow_df.std(axis = 1)
-    #std_post = post_df.std(axis = 1)
 
     # Adding standard deviation to average 
     pre_added = avg_pre_pow.add(std_pre)
-    #post_added = avg_post.add(std_post)
 
     # Turning avg series back into dataframe
     precoh_df = avg_pre_coh.to_frame()
