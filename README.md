@@ -39,3 +39,7 @@ Reads output of open_cv_object_tracker and creates a lineplot oh average movemen
 
 ### dev_cam.py
 A file with video recording and overlay functions written using OpenCV. This can be imported into simple_CL.py to record videos with timestamps and recording information
+
+
+### convert_mp4_to_avi.py
+Turns .mp4 MJPG codec videos recorded with windows camera app into an MJPG codec .avi file which Any-Maze will accept for later analysis. Slow, but works.
