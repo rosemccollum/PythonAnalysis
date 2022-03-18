@@ -6,6 +6,7 @@ import csv
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.ndimage.filters as filters
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
@@ -135,12 +136,16 @@ while m < loop_num:
 # df_final_pre postprocessing
 df_final = df_final.reset_index()
 df_final = df_final[['time','lfp','channel',]]
+gaussian_lfp = df_final['lfp']
+gaussian_lfp = gaussian_lfp.astype('float64')
+gaussian = filters.gaussian_filter1d(gaussian_lfp,sigma=10)
+df_final['lfp'] = gaussian
 
 print('graphing')
 
 # Graph
 fig = plt.figure(figsize = (13,7))
-plot = sns.lineplot(data = df_final, x='time',y='lfp',hue='channel')
+plot = sns.lineplot(data = df_final, x='time',y='lfp',hue='channel', palette='Set1')
 plot.set_title('LFP over time')
 plot.set_xlabel('Time (s)')
 plot.set_ylabel('LFP')
@@ -150,6 +155,6 @@ time_labels = (range(0, 1804, 60))
 plot.set_xticks(time_labels)
 plot.set_xticklabels(time_labels, rotation = 45)
 plt.tight_layout()
-plt.savefig(dir[0] + rat + '_' + day + "_LFP_over_time")
+plt.savefig(dir[0] + rat + '_' + day + "_filteredLFP_over_time")
 print("done")
 plt.show()
