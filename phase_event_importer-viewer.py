@@ -1,5 +1,6 @@
 ### Import Dependencies ###
 from scipy.signal import hilbert, filtfilt, butter
+from scipy.stats import circmean, circvar
 import scipy.io as scipy
 import numpy as np
 from numpy import angle
@@ -13,17 +14,18 @@ import matplotlib.pyplot as plt
 drive = r'Z:\projmon\virginia-dev'
 location = '01_EPHYSDATA'
 rat = 'dev2110'
-day = 'day20'
-condition = "CLOSED_LOOP_2022-02-28_14-36-19" # Include the entire name
-hidden = 'hidden' # I've hidden most files in a folder 1 level deeper so that Matlab pathway isn't needing to be run on entire CL section
-data_dir = os.path.join(drive, location, rat, day, hidden, condition, 'Phase_Data.mat') # Easiest way to work with paths between unix / windows systems
+day = 'day1'
+condition = "CLOSED_LOOP_2021-10-28_10-40-21" # Include the entire name
+hidden = 'hidden' # For files moved so that dev Matlab pathway doesn't run on CL section
+data_dir = os.path.join(drive, location, rat, day, hidden, condition, 'Phase_Data.mat') # os.path.join() is easiest way to work with paths between unix / windows systems
 data_dict = mat73.loadmat(data_dir) # mat73 allows importing matlab v7.3 files (scipy does not currently support)
+coi = 1 # Channel of Interest (coi)
 
 def load_matlab_files():
     ### Load data into numpy arrays for usage w/i Python ###
     ## Event Data ##
     event_data = data_dict['event_data']['Data'] # 3687x1 int16 data
-    event_data = np.array(event_data)
+    event_data = np.array(event_data) # Convert to np array
 
     event_timestamps = data_dict['event_data']['Timestamps'] # 3687x1 int64 data
     event_timestamps = np.array(event_timestamps)
@@ -50,32 +52,33 @@ def load_matlab_files():
 
     ## Event 2 DF ##
     df_event_2 = pd.DataFrame(event_data_2)
-    df_event_2.columns = ['event_data_2']
+    df_event_2.columns = ['event_data']
     df_event_2['timestamps'] = event_timestamps_2
 
     ## Event 3 DF ##
     df_event_3 = pd.DataFrame(event_data_3)
-    df_event_3.columns = ['event_data_3']
+    df_event_3.columns = ['event_data']
     df_event_3['timestamps'] = event_timestamps_3
 
     ### Save DFs to csv files for quicker access in future ###
     df_event.to_csv(os.path.join(drive, location, rat, day, 'df_event.csv'))
     df_event_2.to_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv'))
     df_event_3.to_csv(os.path.join(drive, location, rat, day, 'df_event_3.csv'))
-    print('Done!')
+    print('Matlab Files Loaded')
 
 def create_rose_plot():
     ### Load data into numpy arrays for usage w/i Python ###
-    ### These large files are chopped by excel as .csv ###
+    ### Large files are chopped at ~1 million cells by excel when opened as .csv ###
+
     ## LFP Timestamps to DF ##
     lfp_timestamps = data_dict['cont_data_LFP']['Timestamps']
     lfp_timestamps = np.array(lfp_timestamps)
     lfp_timestamps = pd.DataFrame(lfp_timestamps)
 
-    ## LFP Data to DF##
+    ## LFP Data to DF ##
     lfp_data = data_dict['cont_data_LFP']['Data'] # Access Data double values - 40x9026304 double
     lfp_data = np.array(lfp_data) # Convert to np array
-    lfp_data = lfp_data[6,:] # This should select channel 7 (0 indexed)
+    lfp_data = lfp_data[coi-1,:] # coi-1 b/c Python is 0 indexed
     lfp_data = pd.DataFrame(lfp_data*0.195)
     lfp_data.columns = ['lfp_data']
     lfp_timestamps.columns = ['lfp_timestamps']
@@ -104,14 +107,29 @@ def create_rose_plot():
     df['timestamps'] = lfp_timestamps['lfp_timestamps']
 
     ### Read in previously saved .csv files ###
-    df_event_3 = pd.read_csv(os.path.join(drive, location, rat, day, 'df_event_3.csv'))
-    df_event_3 = df_event_3.where(df_event_3['timestamps'] > 0) # This is a little lazy, but it works!
 
-    df_event_3 = df_event_3.where(df_event_3['event_data_3'] > 1) # Turn negative events into NAN
+    ## DF Event 3 - Sham ##
+    df_event_3 = pd.read_csv(os.path.join(drive, location, rat, day, 'df_event_3.csv')) # These .csv files can be read in b/c length is far under 10^6 rows
+    df_event_3 = df_event_3.where(df_event_3['timestamps'] > 0) # This is a little lazy, but it works!
+    df_event_3 = df_event_3.where(df_event_3['event_data'] > 1) # Turn negative events into NAN
     df_event_3 = df_event_3.dropna() # Remove all rows with NAN values
+    
+    ## Toggle on/off using stim for 2x data ##
+    ## THIS ONLY WORKS IF STIM WAS NOT DELIVERED (No artifacts) ##
+    include_stim = False # False for off (default)
+
+    if include_stim == True:
+        df_event_2 = pd.read_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv')) # These .csv files can be read in b/c length is far under 10^6 rows
+        df_event_2 = df_event_2.where(df_event_3['timestamps'] > 0) # This is a little lazy, but it works!
+        df_event_2 = df_event_2.where(df_event_3['event_data'] > 1) # Turn negative events into NAN
+        df_event_2 = df_event_2.dropna() # Remove all rows with NAN values
+        df_event_3 = pd.concat([df_event_3, df_event_2])
+        print(df_event_3.head(100))
+        print(df_event_3.info())
+        print(df_event_3.describe())
 
     df = df.merge(df_event_3, on='timestamps', how='inner') # Merge the DFs
-    df_save_path = os.path.join(drive, location, rat, day) # Create a save path for Virginia's csv filew
+    df_save_path = os.path.join(drive, location, rat, day) # Create a save path for .csv files (in phase)
     df.to_csv('{}\\{}_{}_{}_phase-event_data.csv'.format(df_save_path,rat, day, condition)) # Save csv
 
     ### Visualize Data ###
@@ -132,6 +150,7 @@ def create_rose_plot():
         starting_deg += 10
         print('Starting Deg : {}'.format(starting_deg))
 
+    ### FIX IN THE 30MAR2022 IMPLEMENTATION ###
     ### WARNING - This is cheating to get it done, so DO NOT change bin size or this will fail!!! ###
     density_chop_1 = density[18:]
     density_chop_2 = density[:17]
@@ -168,6 +187,43 @@ def create_rose_plot():
     plot_save_path = os.path.join(drive, location, rat, day,"{}_{}_{}_sham_events_GT_offline".format(rat, day, condition)) # Plot save location
     plt.savefig(plot_save_path) # Save plot before showing
     plt.show()
+    print('Rose Plots Created')
 
-load_matlab_files()
-create_rose_plot()
+def calc_error():
+    '''
+    Process of saving/reloading .csv is redundant
+    My justification (for this and calc_stats functions):
+        - Loading small DF from .csv is fast
+        - A seperate phase and error file is good logging
+        - It's nice to be able to run calculate_error() quickly
+            - Loading phase data from previous function is time-consuming
+    '''
+    ## Load Data ##
+    df_save_path = os.path.join(drive, location, rat, day) # Load/Save path for error csv files
+
+    ## Exporting Error Data (Degrees) ##
+    df = pd.read_csv('{}\\{}_{}_{}_phase-event_data.csv'.format(df_save_path, rat, day, condition)) # Load CSV
+    df['error_data'] = df['phase_data'] + 180
+    df.to_csv('{}\\{}_{}_{}_error_data_degrees.csv'.format(df_save_path,rat, day, condition)) # Save data in degrees
+
+    ## Exporting Error Data (Radians) ##
+    df['error_data_radians'] = df['error_data'] * 0.0174533
+    df = df['error_data_radians']
+    df.to_csv('{}\\{}_{}_{}_error_data_radians.csv'.format(df_save_path,rat, day, condition)) # Save data in radians
+    print('Error Files Created')
+
+def calc_stats():
+    df_save_path = os.path.join(drive, location, rat, day)
+    #df = pd.read_csv('{}\\{}_{}_{}_error_data_radians.csv'.format(df_save_path, rat, day, condition)) # Load CSV
+    df = pd.read_csv(r"Z:\projmon\virginia-dev\01_EPHYSDATA\NIH_ASIC_Error\CLOSED_LOOP_Combined(dev2110day20_dev2202day5-6)_error_data_radians.csv")
+    circmean_result = circmean(df['error_data_radians']) / 3.14159 * 180 # Converts to degrees
+    circvar_result = circvar(df['error_data_radians'])
+    print("Circular Mean : {}".format(circmean_result))
+    print("Circular Variance : {}".format(circvar_result))
+    print('Stats Calculated')
+
+#load_matlab_files()
+#create_rose_plot()
+#calc_error() # Convert phase data into error data (sep. log files for degrees and radians)
+calc_stats() # This will fail until you run the circ_plot matlab functions on the data
+# note: In matalb you will need to add 180 to all degrees and then convert to radians before running through circ_plot
