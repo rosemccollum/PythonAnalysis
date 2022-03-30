@@ -214,16 +214,15 @@ def calc_error():
 
 def calc_stats():
     df_save_path = os.path.join(drive, location, rat, day)
-    #df = pd.read_csv('{}\\{}_{}_{}_error_data_radians.csv'.format(df_save_path, rat, day, condition)) # Load CSV
-    df = pd.read_csv(r"Z:\projmon\virginia-dev\01_EPHYSDATA\NIH_ASIC_Error\CLOSED_LOOP_Combined(dev2110day20_dev2202day5-6)_error_data_radians.csv")
+    df = pd.read_csv('{}\\{}_{}_{}_error_data_radians.csv'.format(df_save_path, rat, day, condition)) # Load CSV
     circmean_result = circmean(df['error_data_radians']) / 3.14159 * 180 # Converts to degrees
     circvar_result = circvar(df['error_data_radians'])
     print("Circular Mean : {}".format(circmean_result))
     print("Circular Variance : {}".format(circvar_result))
     print('Stats Calculated')
 
-#load_matlab_files()
-#create_rose_plot()
-#calc_error() # Convert phase data into error data (sep. log files for degrees and radians)
+load_matlab_files()
+create_rose_plot()
+calc_error() # Convert phase data into error data (sep. log files for degrees and radians)
 calc_stats() # This will fail until you run the circ_plot matlab functions on the data
 # note: In matalb you will need to add 180 to all degrees and then convert to radians before running through circ_plot
