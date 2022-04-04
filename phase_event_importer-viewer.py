@@ -10,16 +10,19 @@ import mat73
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-### Define Data Location ###
+### Define Data Location and Settings ###
 drive = r'Z:\projmon\virginia-dev'
 location = '01_EPHYSDATA'
-rat = 'dev2110'
-day = 'day1'
-condition = "CLOSED_LOOP_2021-10-28_10-40-21" # Include the entire name
+rat = 'dev2202'
+day = 'day8'
+condition = "CLOSED_LOOP_2022-04-01_11-42-30" # Include the entire name
 hidden = 'hidden' # For files moved so that dev Matlab pathway doesn't run on CL section
-data_dir = os.path.join(drive, location, rat, day, hidden, condition, 'Phase_Data.mat') # os.path.join() is easiest way to work with paths between unix / windows systems
+data_dir = os.path.join(drive, location, rat, day, condition, 'Phase_Data.mat') # os.path.join() is easiest way to work with paths between unix / windows systems
 data_dict = mat73.loadmat(data_dir) # mat73 allows importing matlab v7.3 files (scipy does not currently support)
 coi = 1 # Channel of Interest (coi)
+bins = 24 # number of bins in the rose plot
+bipolar_rereferencing = False # eg: 1-2 vs. 1 [we always use coi - (coi+1)]
+include_stim = False # Leave false by default - cannot be used if stim was delivered
 
 def load_matlab_files():
     ### Load data into numpy arrays for usage w/i Python ###
@@ -66,7 +69,7 @@ def load_matlab_files():
     df_event_3.to_csv(os.path.join(drive, location, rat, day, 'df_event_3.csv'))
     print('Matlab Files Loaded')
 
-def create_rose_plot():
+def create_rose_plot(bins, include_stim):
     ### Load data into numpy arrays for usage w/i Python ###
     ### Large files are chopped at ~1 million cells by excel when opened as .csv ###
 
@@ -74,14 +77,23 @@ def create_rose_plot():
     lfp_timestamps = data_dict['cont_data_LFP']['Timestamps']
     lfp_timestamps = np.array(lfp_timestamps)
     lfp_timestamps = pd.DataFrame(lfp_timestamps)
+    lfp_timestamps.columns = ['lfp_timestamps']
 
     ## LFP Data to DF ##
     lfp_data = data_dict['cont_data_LFP']['Data'] # Access Data double values - 40x9026304 double
     lfp_data = np.array(lfp_data) # Convert to np array
-    lfp_data = lfp_data[coi-1,:] # coi-1 b/c Python is 0 indexed
-    lfp_data = pd.DataFrame(lfp_data*0.195)
-    lfp_data.columns = ['lfp_data']
-    lfp_timestamps.columns = ['lfp_timestamps']
+
+    if bipolar_rereferencing == True:
+        lfp_data_1 = lfp_data[coi,:] # Same as coi +1 b/c 0 indexing
+        lfp_data = lfp_data[coi-1,:] # coi-1 b/c Python is 0 indexed
+        lfp_data = pd.DataFrame((lfp_data - lfp_data_1)*0.195)
+    elif bipolar_rereferencing == False:
+        lfp_data = lfp_data[coi-1,:] # coi-1 b/c Python is 0 indexed
+        lfp_data = pd.DataFrame(lfp_data*0.195)
+    else:
+        raise Exception('Unable to determine referencing technique!')
+
+    lfp_data.columns = ['lfp_data'] # This should be the same for both instances
 
     ### Prepare DFs for off-line phase calc ###
     df = lfp_data['lfp_data']*5.12820512821 # New DF w/ only the phase_data information for now
@@ -91,7 +103,7 @@ def create_rose_plot():
     fs = 30000 # sampling rate (default: 30000)
     lowpass = 4.0 # Hz
     low = lowpass / (fs/2)
-    highpass = 8.0 # Hz
+    highpass = 12.0 # Hz
     high = highpass / (fs/2)
     order = 2
 
@@ -116,29 +128,26 @@ def create_rose_plot():
     
     ## Toggle on/off using stim for 2x data ##
     ## THIS ONLY WORKS IF STIM WAS NOT DELIVERED (No artifacts) ##
-    include_stim = False # False for off (default)
-
     if include_stim == True:
         df_event_2 = pd.read_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv')) # These .csv files can be read in b/c length is far under 10^6 rows
         df_event_2 = df_event_2.where(df_event_3['timestamps'] > 0) # This is a little lazy, but it works!
         df_event_2 = df_event_2.where(df_event_3['event_data'] > 1) # Turn negative events into NAN
         df_event_2 = df_event_2.dropna() # Remove all rows with NAN values
         df_event_3 = pd.concat([df_event_3, df_event_2])
-        print(df_event_3.head(100))
-        print(df_event_3.info())
-        print(df_event_3.describe())
 
     df = df.merge(df_event_3, on='timestamps', how='inner') # Merge the DFs
     df_save_path = os.path.join(drive, location, rat, day) # Create a save path for .csv files (in phase)
     df.to_csv('{}\\{}_{}_{}_phase-event_data.csv'.format(df_save_path,rat, day, condition)) # Save csv
 
     ### Visualize Data ###
-    bins = 10
     starting_deg = -180
     ending_deg = 180
     density = []
-    step = 10
     total_deg = ending_deg - starting_deg
+    step = total_deg / bins
+
+    if total_deg % bins != 0:
+        raise Exception('{} bins do not evenly bin phase data'.format(bins))
 
     for i in range(int(total_deg/step)):
         filter = df['phase_data'] > float(starting_deg)
@@ -147,19 +156,18 @@ def create_rose_plot():
         df_smaller = df_small.where(filter_2)
         phase_count = int(df_smaller['phase_data'].count())
         density.append(phase_count)
-        starting_deg += 10
+        starting_deg += step
         print('Starting Deg : {}'.format(starting_deg))
-
-    ### FIX IN THE 30MAR2022 IMPLEMENTATION ###
-    ### WARNING - This is cheating to get it done, so DO NOT change bin size or this will fail!!! ###
-    density_chop_1 = density[18:]
-    density_chop_2 = density[:17]
+    
+    density_chop_1 = density[int(bins/2):]
+    density_chop_2 = density[:int(bins/2-1)]
     density = density_chop_1 + density_chop_2
+    print(density)
 
     ### Create a final DF for plotting ###
     df = pd.DataFrame(density)
     df.columns = ['Value']
-    print(df.head(3)) # Show 3 first rows
+    print(df.head(36)) # Show
 
     plt.figure(figsize=(20,10)) # set figure size
     ax = plt.subplot(111, polar=True)
@@ -221,8 +229,9 @@ def calc_stats():
     print("Circular Variance : {}".format(circvar_result))
     print('Stats Calculated')
 
-load_matlab_files()
-create_rose_plot()
-calc_error() # Convert phase data into error data (sep. log files for degrees and radians)
-calc_stats() # This will fail until you run the circ_plot matlab functions on the data
-# note: In matalb you will need to add 180 to all degrees and then convert to radians before running through circ_plot
+if __name__ == '__main__':
+    load_matlab_files()
+    create_rose_plot(bins, include_stim)
+    calc_error() # Convert phase data into error data (sep. log files for degrees and radians)
+    calc_stats() # This will fail until you run the circ_plot matlab functions on the data
+    # note: In matalb you will need to add 180 to all degrees and then convert to radians before running through circ_plot
