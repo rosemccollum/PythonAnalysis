@@ -13,16 +13,21 @@ import matplotlib.pyplot as plt
 ### Define Data Location and Settings ###
 drive = r'Z:\projmon\virginia-dev'
 location = '01_EPHYSDATA'
-rat = 'dev2202'
-day = 'day8'
-condition = "CLOSED_LOOP_2022-04-01_11-42-30" # Include the entire name
+rat = 'devsine(testing)'
+day = 'daysine6hz_4chan_moved_node_pos2'
+condition = "CLOSED_LOOP_2022-04-06_14-14-07" # Include the entire name
 hidden = 'hidden' # For files moved so that dev Matlab pathway doesn't run on CL section
 data_dir = os.path.join(drive, location, rat, day, condition, 'Phase_Data.mat') # os.path.join() is easiest way to work with paths between unix / windows systems
 data_dict = mat73.loadmat(data_dir) # mat73 allows importing matlab v7.3 files (scipy does not currently support)
-coi = 1 # Channel of Interest (coi)
+fs = 500 # sampling rate (default: 30000)
+coi = 12 # Channel of Interest (coi)
 bins = 24 # number of bins in the rose plot
-bipolar_rereferencing = False # eg: 1-2 vs. 1 [we always use coi - (coi+1)]
-include_stim = False # Leave false by default - cannot be used if stim was delivered
+lowpass = 4 # Hz
+highpass = 8 # Hz
+bipolar_rereferencing = True # eg: 1-2 vs. 1 [we always use coi - (coi+1)]
+include_stim = False # Leave false by default - cannot be used if stim was delivered. Only works if inc_event_data_ 2 is set to True
+inc_event_data_2 = False # Turning off when not needed could decrease runtime significantly
+
 
 def load_matlab_files():
     ### Load data into numpy arrays for usage w/i Python ###
@@ -34,11 +39,12 @@ def load_matlab_files():
     event_timestamps = np.array(event_timestamps)
     
     ## Event Data 2 - Stim Crossing Detector ##
-    event_data_2 = data_dict['event_data_2']['Data'] # 3687x1 int16 data
-    event_data_2 = np.array(event_data_2) # Convert to np array
+    if inc_event_data_2 == True:
+        event_data_2 = data_dict['event_data_2']['Data'] # 3687x1 int16 data
+        event_data_2 = np.array(event_data_2) # Convert to np array
 
-    event_timestamps_2 = data_dict['event_data_2']['Timestamps'] # 3687x1 int64 data
-    event_timestamps_2 = np.array(event_timestamps_2)
+        event_timestamps_2 = data_dict['event_data_2']['Timestamps'] # 3687x1 int64 data
+        event_timestamps_2 = np.array(event_timestamps_2)
 
     ## Event Data 3 - Sham Crossing Detector ##
     event_data_3 = data_dict['event_data_3']['Data'] # 3687x1 int16 data
@@ -54,9 +60,10 @@ def load_matlab_files():
     df_event['timestamps'] = event_timestamps
 
     ## Event 2 DF ##
-    df_event_2 = pd.DataFrame(event_data_2)
-    df_event_2.columns = ['event_data']
-    df_event_2['timestamps'] = event_timestamps_2
+    if inc_event_data_2 == True:
+        df_event_2 = pd.DataFrame(event_data_2)
+        df_event_2.columns = ['event_data']
+        df_event_2['timestamps'] = event_timestamps_2
 
     ## Event 3 DF ##
     df_event_3 = pd.DataFrame(event_data_3)
@@ -65,7 +72,10 @@ def load_matlab_files():
 
     ### Save DFs to csv files for quicker access in future ###
     df_event.to_csv(os.path.join(drive, location, rat, day, 'df_event.csv'))
-    df_event_2.to_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv'))
+
+    if inc_event_data_2 == True:
+        df_event_2.to_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv'))
+
     df_event_3.to_csv(os.path.join(drive, location, rat, day, 'df_event_3.csv'))
     print('Matlab Files Loaded')
 
@@ -96,14 +106,11 @@ def create_rose_plot(bins, include_stim):
     lfp_data.columns = ['lfp_data'] # This should be the same for both instances
 
     ### Prepare DFs for off-line phase calc ###
-    df = lfp_data['lfp_data']*5.12820512821 # New DF w/ only the phase_data information for now
+    df = lfp_data['lfp_data']*0.19 # New DF w/ only lfp_data column 5.12820512821
     data = df # Get it to same syntax in Virginia's Matlab code
 
     ### Set some params ###
-    fs = 30000 # sampling rate (default: 30000)
-    lowpass = 4.0 # Hz
     low = lowpass / (fs/2)
-    highpass = 12.0 # Hz
     high = highpass / (fs/2)
     order = 2
 
