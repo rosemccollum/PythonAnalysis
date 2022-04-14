@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 drive = r'Z:\projmon\virginia-dev'
 location = '01_EPHYSDATA'
 rat = 'devsine(testing)'
-day = 'daysine6hz_4chan_moved_node_pos2'
-condition = "CLOSED_LOOP_2022-04-06_14-14-07" # Include the entire name
+day = 'alt_node_setup'
+condition = "CLOSED_LOOP_2022-04-13_11-47-57" # Include the entire name
 hidden = 'hidden' # For files moved so that dev Matlab pathway doesn't run on CL section
 data_dir = os.path.join(drive, location, rat, day, condition, 'Phase_Data.mat') # os.path.join() is easiest way to work with paths between unix / windows systems
 data_dict = mat73.loadmat(data_dir) # mat73 allows importing matlab v7.3 files (scipy does not currently support)
@@ -32,14 +32,14 @@ inc_event_data_2 = False # Turning off when not needed could decrease runtime si
 def load_matlab_files():
     ### Load data into numpy arrays for usage w/i Python ###
     ## Event Data ##
-    event_data = data_dict['event_data']['Data'] # 3687x1 int16 data
-    event_data = np.array(event_data) # Convert to np array
+    #event_data = data_dict['event_data']['Data'] # 3687x1 int16 data
+    #event_data = np.array(event_data) # Convert to np array
 
-    event_timestamps = data_dict['event_data']['Timestamps'] # 3687x1 int64 data
-    event_timestamps = np.array(event_timestamps)
+    #event_timestamps = data_dict['event_data']['Timestamps'] # 3687x1 int64 data
+    #event_timestamps = np.array(event_timestamps)
     
     ## Event Data 2 - Stim Crossing Detector ##
-    if inc_event_data_2 == True:
+    if inc_event_data_2:
         event_data_2 = data_dict['event_data_2']['Data'] # 3687x1 int16 data
         event_data_2 = np.array(event_data_2) # Convert to np array
 
@@ -55,12 +55,12 @@ def load_matlab_files():
 
     ### Turn np arrays into pandas Dataframes ###
     ## Event DF ##
-    df_event = pd.DataFrame(event_data)
-    df_event.columns = ['event_data']
-    df_event['timestamps'] = event_timestamps
+    #df_event = pd.DataFrame(event_data)
+    #df_event.columns = ['event_data']
+    #df_event['timestamps'] = event_timestamps
 
     ## Event 2 DF ##
-    if inc_event_data_2 == True:
+    if inc_event_data_2:
         df_event_2 = pd.DataFrame(event_data_2)
         df_event_2.columns = ['event_data']
         df_event_2['timestamps'] = event_timestamps_2
@@ -71,9 +71,9 @@ def load_matlab_files():
     df_event_3['timestamps'] = event_timestamps_3
 
     ### Save DFs to csv files for quicker access in future ###
-    df_event.to_csv(os.path.join(drive, location, rat, day, 'df_event.csv'))
+    #df_event.to_csv(os.path.join(drive, location, rat, day, 'df_event.csv'))
 
-    if inc_event_data_2 == True:
+    if inc_event_data_2:
         df_event_2.to_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv'))
 
     df_event_3.to_csv(os.path.join(drive, location, rat, day, 'df_event_3.csv'))
@@ -93,7 +93,7 @@ def create_rose_plot(bins, include_stim):
     lfp_data = data_dict['cont_data_LFP']['Data'] # Access Data double values - 40x9026304 double
     lfp_data = np.array(lfp_data) # Convert to np array
 
-    if bipolar_rereferencing == True:
+    if bipolar_rereferencing:
         lfp_data_1 = lfp_data[coi,:] # Same as coi +1 b/c 0 indexing
         lfp_data = lfp_data[coi-1,:] # coi-1 b/c Python is 0 indexed
         lfp_data = pd.DataFrame((lfp_data - lfp_data_1)*0.195)
@@ -124,6 +124,8 @@ def create_rose_plot(bins, include_stim):
     df = pd.DataFrame(phase_data)
     df.columns = ['phase_data']
     df['timestamps'] = lfp_timestamps['lfp_timestamps']
+    df_save_path = os.path.join(drive, location, rat, day) # Create a save path for .csv files (in phase)
+    df.to_csv('{}\\{}_{}_{}_offline_phase_data.csv'.format(df_save_path,rat, day, condition))
 
     ### Read in previously saved .csv files ###
 
@@ -135,7 +137,7 @@ def create_rose_plot(bins, include_stim):
     
     ## Toggle on/off using stim for 2x data ##
     ## THIS ONLY WORKS IF STIM WAS NOT DELIVERED (No artifacts) ##
-    if include_stim == True:
+    if include_stim:
         df_event_2 = pd.read_csv(os.path.join(drive, location, rat, day, 'df_event_2.csv')) # These .csv files can be read in b/c length is far under 10^6 rows
         df_event_2 = df_event_2.where(df_event_3['timestamps'] > 0) # This is a little lazy, but it works!
         df_event_2 = df_event_2.where(df_event_3['event_data'] > 1) # Turn negative events into NAN
@@ -143,7 +145,6 @@ def create_rose_plot(bins, include_stim):
         df_event_3 = pd.concat([df_event_3, df_event_2])
 
     df = df.merge(df_event_3, on='timestamps', how='inner') # Merge the DFs
-    df_save_path = os.path.join(drive, location, rat, day) # Create a save path for .csv files (in phase)
     df.to_csv('{}\\{}_{}_{}_phase-event_data.csv'.format(df_save_path,rat, day, condition)) # Save csv
 
     ### Visualize Data ###
@@ -157,7 +158,7 @@ def create_rose_plot(bins, include_stim):
         raise Exception('{} bins do not evenly bin phase data'.format(bins))
 
     for i in range(int(total_deg/step)):
-        filter = df['phase_data'] > float(starting_deg)
+        filter = df['phase_data'] >= float(starting_deg)
         filter_2 = df['phase_data'] < float(starting_deg + step)
         df_small = df.where(filter)
         df_smaller = df_small.where(filter_2)
