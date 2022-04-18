@@ -31,8 +31,9 @@ for word in fileName:
         rat = word
     elif "day" in word:
         day = word
-
-dir = file.split("CLOSED")
+    elif ('POST' in word) or ("PRE" in word):
+        condition = word
+dir = file.split("RAW")
 
 ## len(lfp[0][0]) = 16 
 ## lfp[0][0][0] = lfp over time
@@ -59,7 +60,7 @@ t = 0
 time = []
 for t in range (0, len(mat_time[0][0]), 1000): 
     time.append(mat_time[0][0][t][0])
-
+    
 # Writes list of channels to use for plotting
 g = 0 
 channels = []
@@ -144,17 +145,18 @@ df_final['lfp'] = gaussian
 print('graphing')
 
 # Graph
+sns.set(font_scale = 1.5)
 fig = plt.figure(figsize = (13,7))
-plot = sns.lineplot(data = df_final, x='time',y='lfp',hue='channel', palette='Set1')
-plot.set_title('LFP over time')
+plot = sns.lineplot(data = df_final, x='time',y='lfp')
+plot.set_title(condition + ' LFP over time')
 plot.set_xlabel('Time (s)')
 plot.set_ylabel('LFP')
 plot.set(ylim = (-2000, 2000))
-plot.get_legend().remove()
-time_labels = (range(0, 1804, 60))
+#plot.get_legend().remove()
+time_labels = (range(0, len(time), 60))
 plot.set_xticks(time_labels)
 plot.set_xticklabels(time_labels, rotation = 45)
 plt.tight_layout()
-plt.savefig(dir[0] + rat + '_' + day + "_filteredLFP_over_time")
+plt.savefig(dir[0] + condition + '_' + rat + '_' + day + "_filteredLFP_over_time")
 print("done")
 plt.show()

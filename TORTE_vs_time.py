@@ -17,7 +17,8 @@ print("starting...")
 Tk().withdraw() 
 file = askopenfilename()
 print("File: ", file)
-### file = r"C:/Users/angel/Documents/TNELab/Programming/RatData/dev2111/day1/RAW_PRE_dev2111_day1_cleandata_struct.mat" for debugging
+### File for debugging
+### file = r"C:/Users/angel/Documents/TNELab/Programming/RatData/dev2111/day1/RAW_PRE_dev2111_day1_cleandata_struct.mat"
 mat = scio.loadmat(file)
 
 # Grab necessary data
@@ -57,9 +58,9 @@ df.rename(columns= {0:'phase'}, inplace=True)
 # Write and add time values 
 t = 0
 time = []
-for t in range (0, len(mat_time[0][0]), 600): 
+for t in range(0, len(mat_time[0][0]), 600):
     time.append(mat_time[0][0][t][0])
-df["time"] = time
+df["time"] = time 
 
 # Split file name to get rat and day data
 temp = file.split("/")
@@ -74,13 +75,23 @@ for word in fileName:
         condition = word
 dir = file.split("RAW")
 
+# Determing step for time labels
+if (len(mat_time[0][0]) > 300000):
+    step = 60
+else:
+    step = 1; 
+
 # Graph and save plot 
 print("graphing...")
+sns.set(font_scale = 1.5)
 fig = plt.figure(figsize = (13,7))
 plot = sns.lineplot(data = df, x = 'time', y = 'phase')
 plot.set_title('TORTE Phase over time ' + condition + " " + rat + " " + day)
 plot.set_xlabel('Time (s)')
 plot.set_ylabel('Phase')
+time_labels = (range(0, (len(mat_time[0][0])//1000)+1, step))
+plot.set_xticks(time_labels)
+plot.set_xticklabels(time_labels, rotation = 45)
 plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_TORTEphase_over_time")
 plt.show()
 print("done")
