@@ -41,7 +41,7 @@ for word in fileName:
     elif "day" in word:
         day = word
 
-dir = file.split("CLOSED")
+dir = file.split("RAW")
 
 # Make dataframe 
 df = pd.DataFrame(cleandata_matlab_struct)
@@ -71,10 +71,13 @@ df_final['gaussian'] = delta_list
 
 print("graphing...")    
 # Plot results using Seaborn
+sns.set(font_scale = 1.5)
+fig = plt.figure(figsize = (13,8))
 ax = sns.lineplot(data=gaussian, color='#EF3D59')
 ax.set_title('Acceleration Vs. Time (s) - {} {}'.format(rat,day))
-ax.set_xlabel('Time (ms)')
+ax.set_xlabel('Time (s)')
 ax.set_ylabel('Acceleration (mV/g)')
+ax.set_xticklabels([0, 60, 120, 180, 240, 300], rotation = 45)
 ax.set(xlim =(0, 10000))
 print("done")
 plt.savefig(dir[0] + rat + '_' + day + "_filteredAccel_over_time")
