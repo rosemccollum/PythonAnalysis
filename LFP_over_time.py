@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage.filters as filters
+from scipy import signal
 from tkinter import Tk   
 from tkinter.filedialog import askopenfilename
 
@@ -139,8 +140,11 @@ df_final = df_final.reset_index()
 df_final = df_final[['time','lfp','channel',]]
 gaussian_lfp = df_final['lfp']
 gaussian_lfp = gaussian_lfp.astype('float64')
-gaussian = filters.gaussian_filter1d(gaussian_lfp,sigma=10)
-df_final['lfp'] = gaussian
+#gaussian = filters.gaussian_filter1d(gaussian_lfp,sigma=10) ## Don't filter this, just find better data to show
+## try butterworth/bandpass filter instead
+# filters.butter(order of filter, frequencies, type of filter)
+# b, a  = signal.butter(3, 100, 'bandpass')
+# df_final['lfp'] = gaussian
 
 print('graphing')
 
@@ -148,15 +152,14 @@ print('graphing')
 sns.set(font_scale = 1.5)
 fig = plt.figure(figsize = (13,7))
 plot = sns.lineplot(data = df_final, x='time',y='lfp')
-plot.set_title(condition + ' LFP over time')
+plot.set_title(condition + ' LFP over time' + " " + rat + " " + day)
 plot.set_xlabel('Time (s)')
 plot.set_ylabel('LFP')
 plot.set(ylim = (-2000, 2000))
-#plot.get_legend().remove()
 time_labels = (range(0, len(time), 60))
 plot.set_xticks(time_labels)
 plot.set_xticklabels(time_labels, rotation = 45)
 plt.tight_layout()
-plt.savefig(dir[0] + condition + '_' + rat + '_' + day + "_filteredLFP_over_time")
+#plt.savefig(dir[0] +  condition + '_' + rat + '_' + day + "_LFP_over_time")
 print("done")
 plt.show()
