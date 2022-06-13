@@ -72,11 +72,13 @@ def getTORTE(filename = None):
 
     # Write and add time values 
     t = 0
+    pt = 0
     time = []
     for t in range(0, len(mat_time[0][0]), 1000):
-        time.append(mat_time[0][0][t][0])
+        time.append(pt)
+        pt += 1
     df["time"] = time 
-
+    
     # Split file name to get rat and day data
     temp = file.split("/")
     fileName = temp[-1]
@@ -86,9 +88,12 @@ def getTORTE(filename = None):
             rat = word
         elif "day" in word:
             day = word
-        elif ('POST' in word) or ("PRE" in word):
+        elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
             condition = word
-    dir = file.split("RAW")
+    if condition == "CLOSED":
+        dir = file.split("CLOSED")
+    else:
+        dir = file.split("RAW")    
 
     # Determing step for time labels
     if (len(mat_time[0][0]) > 300000):
@@ -110,10 +115,9 @@ def getTORTE(filename = None):
         plot.set_xlabel('Time (s)')
         plot.set_ylabel('Phase')
         plot.set_ylim(-180,180)
-        time_labels = (range(0, (len(mat_time[0][0])//1000)+1, step))
-        plot.set_xticks(time_labels)
-        plot.set_xticklabels(time_labels, rotation = 45)
-        plt.text(20, -170, "Mean value:" + str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
+        plt.text(1, -170, "Mean value:" + str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
         plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_TORTEphase_over_time")
         plt.show()
-        print("done")
+    print("done")
+
+getTORTE()

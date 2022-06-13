@@ -72,11 +72,12 @@ def groundTruth(filename = None):
             rat = word
         elif "day" in word:
             day = word
-        elif ('POST' in word) or ("PRE" in word):
+        elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
             condition = word
-        else:
-            condition = "CLOSED"
-    dir = file.split("RAW")
+    if condition == "CLOSED":
+        dir = file.split("CLOSED")
+    else:
+        dir = file.split("RAW")    
     
     # Make dataframe
     df = pd.DataFrame(phases)

@@ -39,13 +39,6 @@ for d in range(0, len(rad_dist)):
     temp_degrees = math.degrees(rad_dist[d])
     dist.append(temp_degrees)
 
-# # Subtract TORTE phase from GTP 
-# p = 0
-# torte_error = []
-# for p in range (len(torte)):
-#     diff = torte[p][0] - gtp[p][0]
-#     torte_error.append(abs(diff))
-
 # Write time points
 t = 0
 time = []
@@ -66,9 +59,12 @@ for word in fileName:
         rat = word
     elif "day" in word:
         day = word
-    elif ('POST' in word) or ("PRE" in word):
+    elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
         condition = word
-dir = file.split("RAW")
+if condition == "CLOSED":
+    dir = file.split("CLOSED")
+else:
+    dir = file.split("RAW")    
 
 # Graph error over time 
 print("graphing...")
@@ -79,6 +75,6 @@ plot.set_title("TORTE Error Over Time")
 plot.set_xticks(range(0, 1805, 20))
 plot.set_xticklabels(range(0, 1805, 20))
 plot.axhline(0, color = 'dimgray', ls = '--')
-# plt.savefig(dir[0] + rat + '_' + day + "_" + "_CircDistDegreesSampleError_over_time")
+plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_CircDistDegreesSampleError_over_time")
 plt.show()
 print("done")
