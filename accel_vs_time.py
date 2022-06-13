@@ -31,7 +31,7 @@ if len(cleandata_matlab_struct) < 35:
     print("This file does not contain accelerometry data, please run again with a new file")
     exit()
 
-# Split file name to get rat and day data
+# Split file name to get condition, rat and day data
 temp = file.split("/")
 fileName = temp[-1]
 fileName = fileName.split("_")
@@ -42,6 +42,8 @@ for word in fileName:
         day = word
 
 dir = file.split("RAW")
+condition = dir[1].split("_")
+condition = condition[1]
 
 # Make dataframe 
 df = pd.DataFrame(cleandata_matlab_struct)
@@ -74,11 +76,11 @@ print("graphing...")
 sns.set(font_scale = 1.5)
 fig = plt.figure(figsize = (13,8))
 ax = sns.lineplot(data=gaussian, color='#EF3D59')
-ax.set_title('Acceleration Vs. Time (s) - {} {}'.format(rat,day))
+ax.set_title('Acceleration Vs. Time (s) - {} {} {}'.format(rat,day,condition))
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Acceleration (mV/g)')
 ax.set_xticklabels([0, 60, 120, 180, 240, 300], rotation = 45)
 ax.set(xlim =(0, 10000))
 print("done")
-plt.savefig(dir[0] + rat + '_' + day + "_filteredAccel_over_time")
+plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_filteredAccel_over_time")
 plt.show()
