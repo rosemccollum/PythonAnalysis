@@ -2,13 +2,10 @@
 ### Import Dependencies ###
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from cv2 import phase
 from scipy.signal import hilbert, filtfilt, butter
-from scipy.stats import circmean, circvar
-import scipy.io as scipy
-import numpy as np
+from scipy.stats import circmean
 from numpy import angle
-import os
+import math
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -49,6 +46,11 @@ def groundTruth(filename = None):
     filtered_data = filtfilt(b, a, data)
     analytic_data = hilbert(filtered_data)
     phase_data = angle(analytic_data)
+
+    # Calculate mean angle
+    rad_avg = circmean(phase_data)
+    avg = math.degrees(rad_avg)
+  
     phase_data = phase_data*180/3.14159 ## Converting to degrees
     
     # Shorten phase to every second
@@ -59,9 +61,11 @@ def groundTruth(filename = None):
 
     # Write and add time values 
     t = 0
+    pt = 0
     time = []
-    for t in range(0, len(mat_time[0][0]),1000):
-        time.append(mat_time[0][0][t][0])
+    for t in range(0, len(mat_time[0][0]), 1000):
+        time.append(pt)
+        pt += 1
 
     # Split file name to get rat and day data
     temp = file.split("/")
@@ -82,7 +86,6 @@ def groundTruth(filename = None):
     # Make dataframe
     df = pd.DataFrame(phases)
     df.columns = ['phase_data']
-    avg = df['phase_data'].mean()
 
     if filename is not None:
         print("done calculating ground truth")
@@ -93,8 +96,10 @@ def groundTruth(filename = None):
         sns.set(font_scale = 1.5)
         fig = plt.figure(figsize = (13,9))
         plot = sns.lineplot(data = df, x = 'time', y ='phase_data')
-        #plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_GroundTruthPhase_over_time")
+        plot.set_title('Ground Truth Phase ' + condition +  " " + rat + " " + day)
+        plot.set_xlabel('Time (s)')
+        plot.set_ylabel('Phase')
         plt.text(20, -170, "Mean phase:" +str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
+        plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_GroundTruthPhase_over_time")
         plt.show()
         print("done")
-    

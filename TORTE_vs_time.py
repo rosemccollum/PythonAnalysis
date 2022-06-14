@@ -1,9 +1,8 @@
 from fileinput import filename
 from cv2 import phase
 import matlab.engine 
-import h5py
-import hdf5storage
 import math
+from scipy.stats import circmean
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
@@ -52,7 +51,9 @@ def getTORTE(filename = None):
     torte = eng.hilbert_transformer_phase(mat_phase, buff, ht_b, band, Fs, upsamp, nargout = 3)
     eng.quit()
 
-    ## Torte output len is phase_list len / 59.99
+    # Calculate mean angle
+    rad_avg = circmean(torte[0])
+    avg = math.degrees(rad_avg)
 
     # Convert to degrees and shorten measurements to every second
     temp_phases = array(torte[0])
@@ -65,10 +66,6 @@ def getTORTE(filename = None):
     # Put data in dataframe
     df = pd.DataFrame(phases)
     df.rename(columns= {0:'phase'}, inplace=True)
-
-    # Find mean of phase
-    avg = df['phase'].mean()
-    #avg = sum/len(temp_phases)
 
     # Write and add time values 
     t = 0
@@ -95,12 +92,6 @@ def getTORTE(filename = None):
     else:
         dir = file.split("RAW")    
 
-    # Determing step for time labels
-    if (len(mat_time[0][0]) > 300000):
-        step = 60
-    else:
-        step = 1; 
-    
     # End function if passed file name (don't need to graph)
     if filename is not None:
         print("done with TORTE calculations")
@@ -115,9 +106,7 @@ def getTORTE(filename = None):
         plot.set_xlabel('Time (s)')
         plot.set_ylabel('Phase')
         plot.set_ylim(-180,180)
-        plt.text(1, -170, "Mean value:" + str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
+        plt.text(1, -170, "Mean value: " + str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
         plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_TORTEphase_over_time")
         plt.show()
     print("done")
-
-getTORTE()
