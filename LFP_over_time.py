@@ -32,9 +32,12 @@ for word in fileName:
         rat = word
     elif "day" in word:
         day = word
-    elif ('POST' in word) or ("PRE" in word):
+    elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
         condition = word
-dir = file.split("RAW")
+if condition == "CLOSED":
+    dir = file.split("CLOSED")
+else:
+    dir = file.split("RAW")   
 
 ## len(lfp[0][0]) = 16 
 ## lfp[0][0][0] = lfp over time

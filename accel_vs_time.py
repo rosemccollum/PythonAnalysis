@@ -1,8 +1,6 @@
 ''' Most code borrowed from Jon's gaussian_demo, manipulated to show just accelerometry data. rae McCollum, 17 Mar 22'''    
 import os
 from tkinter.filedialog import askopenfilename
-from urllib.parse import parse_qs
-
 from cv2 import GaussianBlur
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,7 +29,7 @@ if len(cleandata_matlab_struct) < 35:
     print("This file does not contain accelerometry data, please run again with a new file")
     exit()
 
-# Split file name to get condition, rat and day data
+ # Split file name to get rat and day data
 temp = file.split("/")
 fileName = temp[-1]
 fileName = fileName.split("_")
@@ -40,10 +38,12 @@ for word in fileName:
         rat = word
     elif "day" in word:
         day = word
-
-dir = file.split("RAW")
-condition = dir[1].split("_")
-condition = condition[1]
+    elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
+        condition = word
+if condition == "CLOSED":
+    dir = file.split("CLOSED")
+else:
+    dir = file.split("RAW")   
 
 # Make dataframe 
 df = pd.DataFrame(cleandata_matlab_struct)
