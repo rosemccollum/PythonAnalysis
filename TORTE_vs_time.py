@@ -13,56 +13,66 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 def getTORTE(filename = None):
-    print("torte starting...")
-    # Load matlab files
-    if filename is None:
-        Tk().withdraw() 
-        file = askopenfilename()
-        print("TORTE File: ", file)
-    else :
-        file = filename
-    ### File for debugging
-    ### file = r"C:/Users/angel/Documents/TNELab/Programming/RatData/dev2111/day1/RAW_PRE_dev2111_day1_cleandata_struct.mat"
-    mat = scio.loadmat(file)
+    print("Starting TORTE calculation...")
+    # # Load matlab files
+    # if filename is None:
+    #     Tk().withdraw() 
+    #     file = askopenfilename()
+    #     print("TORTE File: ", file)
+    # else :
+    #     file = filename
+    # ### File for debugging
+    # ### file = r"C:/Users/angel/Documents/TNELab/Programming/RatData/dev2111/day1/RAW_PRE_dev2111_day1_cleandata_struct.mat"
+    # mat = scio.loadmat(file)
+        
+    # Load log file to grab locked channel
+    print("choose log file:")
+    Tk().withdraw()
+    file = askopenfilename()
+    log_mat = scio.loadmat(file)
+    print("File chosen: ", file)
+    mat_channel = log_mat["watchChannel"]
+    chosen_chan = int(mat_channel[0][0])
 
-    # Grab necessary data
-    mat_phase = mat["cur_data"]["phase_data"]
-    mat_time = mat["cur_data"]["seconds"]
-
-    # Make array into list 
-    phase_list = []
-    for i in range(len(mat_phase[0][0][0])) :
-        phase_list.append(mat_phase[0][0][0][i])
-
-    # Convert to array to correct type, then back to list 
-    phases = np.array(phase_list)
-    phases = phases.astype('int32')
-    phase_list = phases.tolist()
-
-    # Call function
-    print("calling matlab script...")
+    # Pull lfp data for selected channel
+    print("grabbing raw lfp data for channel....")
     eng = matlab.engine.start_matlab()
+    chan = matlab.double([chosen_chan])
+    chan_phase = eng.single_chan_lfp(chan, nargout = 2)
+
+    ## chan_phase[0] = lfp data
+    ## chan_phase [1] = seconds
+    chans = np.asarray(chan_phase[0])
+    chans = chans[0].tolist()
+    
+    # Downsample data, might do in matlab but doesn't seem to take crazy long to import
+    c = 0
+    chan_list = []
+    for c in range(0, len(chans), 2000):
+        chan_list.append(chans[c])
+
+    # Call torte function
+    print("calculating TORTE in matlab...")
+    eng = matlab.engine.start_matlab()
+    mat_chan = matlab.double([chan_list])
     buff = matlab.double([[200]]) 
-    mat_phase = matlab.double([phase_list])
-    ht_b = matlab.double([[500]])
-    band = matlab.double([[4,8]])
-    Fs = matlab.double([[1000]])
-    upsamp = matlab.double([[True]])
-    torte = eng.hilbert_transformer_phase(mat_phase, buff, ht_b, band, Fs, upsamp, nargout = 3)
+    torte = eng.hilbert_transformer_phase(mat_chan, buff,  nargout = 3) 
     eng.quit()
 
     # Calculate mean angle
     rad_avg = circmean(torte[0])
     avg = math.degrees(rad_avg)
-
+    
     # Convert to degrees and shorten measurements to every second
     temp_phases = array(torte[0])
     d = 0
     phases = []
-    for d in range(0, len(temp_phases), 1000):
+    for d in range(0, len(temp_phases)):
         temp = float(temp_phases[d])
-        phases.append(math.degrees(temp))
+        phases.append(temp)
 
+    phases = np.degrees(phases) ## change to degrees
+    
     # Put data in dataframe
     df = pd.DataFrame(phases)
     df.rename(columns= {0:'phase'}, inplace=True)
@@ -71,26 +81,26 @@ def getTORTE(filename = None):
     t = 0
     pt = 0
     time = []
-    for t in range(0, len(mat_time[0][0]), 1000):
-        time.append(pt)
-        pt += 1
+    for t in range(0, len(phases)):
+        time.append(t)
+   
     df["time"] = time 
     
-    # Split file name to get rat and day data
-    temp = file.split("/")
-    fileName = temp[-1]
-    fileName = fileName.split("_")
-    for word in fileName:
-        if "dev" in word:
-            rat = word
-        elif "day" in word:
-            day = word
-        elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
-            condition = word
-    if condition == "CLOSED":
-        dir = file.split("CLOSED")
-    else:
-        dir = file.split("RAW")    
+    # # Split file name to get rat and day data
+    # temp = file.split("/")
+    # fileName = temp[-1]
+    # fileName = fileName.split("_")
+    # for word in fileName:
+    #     if "dev" in word:
+    #         rat = word
+    #     elif "day" in word:
+    #         day = word
+    #     elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
+    #         condition = word
+    # if condition == "CLOSED":
+    #     dir = file.split("CLOSED")
+    # else:
+    #     dir = file.split("RAW")    
 
     # End function if passed file name (don't need to graph)
     if filename is not None:
@@ -102,11 +112,12 @@ def getTORTE(filename = None):
         sns.set(font_scale = 1.5)
         fig = plt.figure(figsize = (13,9))
         plot = sns.lineplot(data = df, x = 'time', y = 'phase')
-        plot.set_title('TORTE Phase over time ' + condition +  " " + rat + " " + day)
+        plot.set_title('TORTE Phase over time ')
         plot.set_xlabel('Time (s)')
         plot.set_ylabel('Phase')
         plot.set_ylim(-180,180)
         plt.text(1, -170, "Mean value: " + str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
-        plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_TORTEphase_over_time")
+        ##plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_TORTEphase_over_time")
         plt.show()
     print("done")
+getTORTE()
