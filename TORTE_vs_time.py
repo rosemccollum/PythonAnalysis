@@ -33,6 +33,14 @@ def getTORTE(filename = None):
     print("File chosen: ", file)
     mat_channel = log_mat["watchChannel"]
     chosen_chan = int(mat_channel[0][0])
+    split_file = file.split("log")
+
+    # Split file name to get rat and day data
+    dir = log_mat["record_dir"]
+    dir = dir.tolist()
+    dir = dir[0].split("\\")  
+    rat = dir[-2]
+    day = dir[-1]
 
     # Pull lfp data for selected channel
     print("grabbing raw lfp data for channel....")
@@ -63,7 +71,7 @@ def getTORTE(filename = None):
     rad_avg = circmean(torte[0])
     avg = math.degrees(rad_avg)
     
-    # Convert to degrees and shorten measurements to every second
+    # Convert to correct data type and convert to degrees
     temp_phases = array(torte[0])
     d = 0
     phases = []
@@ -86,22 +94,6 @@ def getTORTE(filename = None):
    
     df["time"] = time 
     
-    # # Split file name to get rat and day data
-    # temp = file.split("/")
-    # fileName = temp[-1]
-    # fileName = fileName.split("_")
-    # for word in fileName:
-    #     if "dev" in word:
-    #         rat = word
-    #     elif "day" in word:
-    #         day = word
-    #     elif ('POST' in word) or ("PRE" in word) or ("CLOSED" in word):
-    #         condition = word
-    # if condition == "CLOSED":
-    #     dir = file.split("CLOSED")
-    # else:
-    #     dir = file.split("RAW")    
-
     # End function if passed file name (don't need to graph)
     if filename is not None:
         print("done with TORTE calculations")
@@ -117,7 +109,7 @@ def getTORTE(filename = None):
         plot.set_ylabel('Phase')
         plot.set_ylim(-180,180)
         plt.text(1, -170, "Mean value: " + str(avg), horizontalalignment='left', size='medium', color='black', weight='semibold')
-        ##plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_TORTEphase_over_time")
+        plt.savefig(split_file[0] + rat + '_' + day + "_"  + "_TORTEphase_over_time")
         plt.show()
     print("done")
 getTORTE()

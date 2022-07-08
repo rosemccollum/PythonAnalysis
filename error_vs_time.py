@@ -4,7 +4,6 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
 import pandas as pd
-import scipy.io as scio
 import seaborn as sns
 import matplotlib.pyplot as plt
 import math
@@ -72,8 +71,6 @@ sns.set(font_scale = 1.5)
 fig = plt.figure(figsize = (13,7))
 plot = sns.lineplot(data = error_df, x ="time", y = "TORTE_Error")
 plot.set_title("TORTE Error Over Time")
-plot.set_xticks(range(0, 1805, 20))
-plot.set_xticklabels(range(0, 1805, 20))
 plot.axhline(0, color = 'dimgray', ls = '--')
 plt.savefig(dir[0] + rat + '_' + day + "_" + condition + "_CircDistDegreesSampleError_over_time")
 plt.show()
