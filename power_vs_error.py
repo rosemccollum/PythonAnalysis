@@ -1,5 +1,4 @@
 ''' Graph error of TORTE and ASIC models ''' 
-import imp
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import numpy as np
@@ -26,13 +25,12 @@ chosen_chan = int(mat_channel[0][0])
 # Pull lfp data for selected channel
 print("grabbing raw lfp data for channel....")
 eng = matlab.engine.start_matlab()
-chan = matlab.double([chosen_chan])
+chan = matlab.double([6])
 chan_phase = eng.single_chan_lfp(chan, nargout = 2)
 
 chans = np.asarray(chan_phase[0])
 chans = chans[0].tolist()
 
-### Calculating Ground Truth ### 
 ### Calculating Ground Truth ### 
 print("calculating ground truth")
 
@@ -61,7 +59,6 @@ phases = []
 p = 0 
 for p in range(0, len(phase_data), 60):
     phases.append(phase_data[p])
-print(len(phases))
 ### Calculating TORTE ###
 
 # Call torte function
@@ -89,8 +86,7 @@ print("calculating error")
 #df_gtp = groundTruth(file)
 gtp = phases
 torte = torte_phases
-print(len(gtp))
-print(len(torte))
+
 # Calc circular distance b/w points
 eng = matlab.engine.start_matlab()
 mat_gtp = matlab.double([gtp])
@@ -125,12 +121,19 @@ power = mne.time_frequency.tfr_array_multitaper(epochs, 1000, frequencies,time_b
 ## output is (n_epochs, n_chans, n_freqs, n_times)
 ## epoch_data = shape(epochs, chan, time), sfreq = 30,000 (1k ds), freqs = [1-30], 
 #   n_cycles=7.0, zero_mean=True, time_bandwidth=3, use_fft=True, decim=1, output='power', n_jobs=1, verbose=None)[source]
+
+# Calculating mean over 30 Hz for each second
 power = power[0][0]
-f = 1
-freqs = []
-for f in range(32):
-    freqs.append(f)
 power_df = pd.DataFrame(power)
 power_means = power_df.mean(axis=0)
+all_means = power_means.values.tolist()
 
-means = power_df.values.tolist()
+# Shortening to every other second to match error array 
+m = 0
+means = [] 
+for m in range(0, len(all_means),2):
+    means.append(all_means[m])
+
+# Calculating correlation coefficient 
+corr_matrix = np.corrcoef(means, y=dist)
+print(corr_matrix)
